@@ -1,0 +1,118 @@
+[gd_scene load_steps=10 format=3 uid="uid://wi83gdapbrsg"]
+
+[ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_s4lrb"]
+[ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="2_mgrm8"]
+[ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="3_dc4i4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_e54dn"]
+shader = ExtResource("2_mgrm8")
+shader_parameter/dimensions = Vector2(1152, 648)
+shader_parameter/rows = 20.0
+shader_parameter/columns = 5.0
+shader_parameter/vertical_scroll = 0.0899999756363199
+shader_parameter/horizontal_scroll = 0.0499999765304
+shader_parameter/size_min = 0.3
+shader_parameter/size_max = 0.7
+shader_parameter/wave_min = 0.1
+shader_parameter/wave_max = 1.0
+shader_parameter/wave_speed = 0.5
+shader_parameter/wave_rotation = 1.0
+shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/near_color = Color(1, 1, 1, 1)
+shader_parameter/particle_texture = ExtResource("3_dc4i4")
+
+[sub_resource type="Gradient" id="Gradient_3yumr"]
+colors = PackedColorArray(0.28089997, 0.39714667, 0.53, 1, 0.3638468, 0.49529433, 0.6459862, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_cs5ya"]
+gradient = SubResource("Gradient_3yumr")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s4lrb"]
+bg_color = Color(0.3024, 0.41191998, 0.48, 0.6117647)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0, 0, 0, 0.11764706)
+shadow_size = 10
+
+[sub_resource type="Gradient" id="Gradient_mykxm"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.52666664)
+colors = PackedColorArray(0.98333335, 1, 0, 1, 0.91, 0.91, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_tklts"]
+gradient = SubResource("Gradient_mykxm")
+width = 30
+height = 30
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.8364486, 0.682243)
+
+[node name="title_screen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_s4lrb")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_e54dn")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_cs5ya")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="title" type="TextureRect" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_s4lrb")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="start_game" type="Button" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Start Game"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="party_member" type="TextureRect" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture = SubResource("GradientTexture2D_tklts")
+
+[node name="add_to_party" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Add to Party"
