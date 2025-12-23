@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b3ugf34pfax0j"]
+[gd_scene load_steps=15 format=3 uid="uid://b3ugf34pfax0j"]
 
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="1_ja2xc"]
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_xm6ha"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://caxmhjkql2p3m" path="res://assets/face_guide.png" id="4_0yffs"]
 [ext_resource type="PackedScene" uid="uid://bp3gauex08urp" path="res://scenes/character_preview.tscn" id="6_oy0w6"]
 [ext_resource type="AudioStream" uid="uid://cggb52mi8hf57" path="res://assets/ui/camera-shutter.mp3" id="6_ucp7b"]
+[ext_resource type="Script" uid="uid://8us6sc3gcnl8" path="res://scripts/character_creator_controller.gd" id="7_controller"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0yffs"]
 shader = ExtResource("1_ja2xc")
@@ -31,6 +32,66 @@ colors = PackedColorArray(0.28089997, 0.39714667, 0.53, 1, 0.3638468, 0.49529433
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_xm6ha"]
 gradient = SubResource("Gradient_3yumr")
 
+[sub_resource type="Animation" id="Animation_f0wb7"]
+resource_name = "confirm"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("HBoxContainer:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.43333334),
+"transitions": PackedFloat32Array(0.6597539, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(-137.29, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("HBoxContainer/VBoxContainer:modulate")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.13333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_22p58"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("HBoxContainer:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("HBoxContainer/VBoxContainer:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_loqas"]
+_data = {
+&"RESET": SubResource("Animation_22p58"),
+&"confirm": SubResource("Animation_f0wb7")
+}
+
 [node name="character_creator" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -39,6 +100,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_xm6ha")
+script = ExtResource("7_controller")
 
 [node name="bg" type="TextureRect" parent="."]
 material = SubResource("ShaderMaterial_0yffs")
@@ -55,6 +117,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 934.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -113,5 +176,10 @@ render_target_update_mode = 4
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_ucp7b")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_loqas")
+}
 
 [connection signal="pressed" from="HBoxContainer/VBoxContainer/ShutterButton" to="HBoxContainer/VBoxContainer/SubViewportContainer/SubViewport/CameraFeed" method="_on_shutter_pressed"]

@@ -204,6 +204,7 @@ func take_photo() -> void:
 func _on_shutter_pressed() -> void:
 	_play_flash()
 	take_photo()
+	$"../../../../../AnimationPlayer".play("confirm")
 
 
 func _capture_texture_rect_from_viewport() -> Image:
