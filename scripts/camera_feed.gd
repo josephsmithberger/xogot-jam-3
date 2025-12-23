@@ -14,17 +14,36 @@ var _tex_cbcr: CameraTexture
 var _web_button: Button
 var _flash_overlay: ColorRect
 
+var _web_rect_provider: Control
+
 var last_photo_image: Image
 var last_photo_texture: ImageTexture
 
 var _web_last_rect: Rect2
 
 
+func _find_web_rect_provider() -> Control:
+	# In the character creator scene, this node is instanced under a SubViewport.
+	# Controls inside a SubViewport can be visually present but unreliable to interact
+	# with on HTML5 exports. We instead attach the web permission button to a Control
+	# that lives in the main viewport (the SubViewportContainer), and we use that
+	# Control's global rect to position the DOM <video> overlay.
+	var p := get_parent()
+	if p != null:
+		var gp := p.get_parent()
+		if gp is Control:
+			return gp as Control
+	return self
+
+
 func _add_web_enable_button() -> void:
+	var host := _web_rect_provider if _web_rect_provider != null else _find_web_rect_provider()
+	_web_rect_provider = host
+
 	_web_button = Button.new()
 	_web_button.text = "Enable Camera"
-	_web_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_web_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_web_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_web_button.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_web_button.anchor_left = 0.5
 	_web_button.anchor_top = 0.5
 	_web_button.anchor_right = 0.5
@@ -33,7 +52,9 @@ func _add_web_enable_button() -> void:
 	_web_button.offset_top = -22
 	_web_button.offset_right = 90
 	_web_button.offset_bottom = 22
-	add_child(_web_button)
+	# Ensure it can receive mouse/touch input.
+	_web_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	host.add_child.call_deferred(_web_button)
 	_web_button.pressed.connect(_on_web_enable_pressed)
 
 
@@ -284,8 +305,9 @@ func _on_web_enable_pressed() -> void:
 		_web_button.disabled = true
 		_web_button.text = "Requesting…"
 
-	var rect := get_global_rect()
-	var view_size := get_viewport_rect().size
+	var rect_provider := _web_rect_provider if _web_rect_provider != null else self
+	var rect := rect_provider.get_global_rect()
+	var view_size := rect_provider.get_viewport_rect().size
 	var js := "window.godotStartCameraAtRect(%f,%f,%f,%f,%f,%f);" % [
 		rect.position.x,
 		rect.position.y,
@@ -328,6 +350,7 @@ func _ready() -> void:
 		# Godot Web exports don't currently pipe getUserMedia() into CameraTexture.
 		# Minimal working approach: show an HTML <video> overlay, started only by user gesture.
 		_init_web_js()
+		_web_rect_provider = _find_web_rect_provider()
 		_add_web_enable_button()
 		return
 
@@ -424,11 +447,12 @@ func _process(_delta: float) -> void:
 	var result = JavaScriptBridge.eval("window.godotCameraReady === true", true)
 	if not bool(result):
 		return
-	var rect := get_global_rect()
+	var rect_provider := _web_rect_provider if _web_rect_provider != null else self
+	var rect := rect_provider.get_global_rect()
 	if rect == _web_last_rect:
 		return
 	_web_last_rect = rect
-	var view_size := get_viewport_rect().size
+	var view_size := rect_provider.get_viewport_rect().size
 	var js := "window.godotUpdateCameraRect && window.godotUpdateCameraRect(%f,%f,%f,%f,%f,%f);" % [
 		rect.position.x,
 		rect.position.y,
