@@ -6,6 +6,7 @@ signal photo_taken(image: Image)
 @export var debug_log := false
 @export var capture_dir := "user://captures"
 @export var web_capture_max_size := Vector2i(960, 540)
+@export_range(1, 60, 1) var web_preview_fps := 15
 
 var _feed_id: int = -1
 var _tex_y: CameraTexture
@@ -19,7 +20,8 @@ var _web_rect_provider: Control
 var last_photo_image: Image
 var last_photo_texture: ImageTexture
 
-var _web_last_rect: Rect2
+var _web_preview_accum: float = 0.0
+var _web_has_started: bool = false
 
 
 func _find_web_rect_provider() -> Control:
@@ -101,11 +103,10 @@ func _init_web_js() -> void:
 				video.playsInline = true;
 				video.muted = true;
 				video.autoplay = true;
-				video.style.position = 'absolute';
-				// 'contain' keeps the whole frame visible inside the rect.
-				video.style.objectFit = 'contain';
+				// We keep the <video> element hidden and stream frames into Godot as textures.
+				// This keeps all UI (like the face guide) rendered correctly on top.
+				video.style.display = 'none';
 				video.style.pointerEvents = 'none';
-				video.style.background = 'black';
 			}
 			return video;
 		};
@@ -115,35 +116,9 @@ func _init_web_js() -> void:
 		window.godotCameraReady = false;
 		window.godotCameraError = '';
 
-		window.godotFlashCamera = () => {
-			const video = document.getElementById('godot-camera-video');
-			if (!video) return;
-			video.style.transition = 'filter 80ms linear';
-			video.style.filter = 'brightness(1.8)';
-			setTimeout(() => {
-				video.style.filter = 'brightness(1.0)';
-			}, 140);
-		};
+		window.godotFlashCamera = () => {};
 
-		const setVideoRect = (video, rx, ry, rw, rh, vw, vh) => {
-			const canvas = findCanvas();
-			if (!canvas) return false;
-			const canvasRect = canvas.getBoundingClientRect();
-			const scaleX = (vw && vw > 0) ? (canvasRect.width / vw) : 1.0;
-			const scaleY = (vh && vh > 0) ? (canvasRect.height / vh) : 1.0;
-			video.style.left = (canvasRect.left + (rx * scaleX)) + 'px';
-			video.style.top = (canvasRect.top + (ry * scaleY)) + 'px';
-			video.style.width = Math.max(1, rw * scaleX) + 'px';
-			video.style.height = Math.max(1, rh * scaleY) + 'px';
-			video.style.position = 'fixed';
-			return true;
-		};
-
-		window.godotUpdateCameraRect = (rx, ry, rw, rh, vw, vh) => {
-			const video = document.getElementById('godot-camera-video');
-			if (!video) return;
-			setVideoRect(video, rx, ry, rw, rh, vw, vh);
-		};
+		window.godotUpdateCameraRect = (rx, ry, rw, rh, vw, vh) => {};
 
 		window.godotStartCameraAtRect = async (rx, ry, rw, rh, vw, vh) => {
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -172,10 +147,8 @@ func _init_web_js() -> void:
 			}
 			const video = ensureVideo();
 			if (!video.parentElement) {
-				parent.appendChild(video); // DOM order puts it above the canvas without z-index.
+				parent.appendChild(video);
 			}
-
-			setVideoRect(video, rx, ry, rw, rh, vw, vh);
 
 			video.srcObject = stream;
 			try {
@@ -323,11 +296,12 @@ func _on_web_enable_pressed() -> void:
 func _poll_web_camera_state() -> void:
 	# Don't block forever; re-enable the button on error/timeout.
 	for _i in range(240):
-		var camera_ready: bool = (JavaScriptBridge.eval("window.godotCameraReady === true", true) == true)
+		var camera_ready := bool(JavaScriptBridge.eval("window.godotCameraReady === true", true))
 		if camera_ready:
 			if _web_button:
 				_web_button.queue_free()
 				_web_button = null
+			_web_has_started = true
 			return
 		var camera_error: String = str(JavaScriptBridge.eval("window.godotCameraError || ''", true))
 		if camera_error != "":
@@ -341,6 +315,32 @@ func _poll_web_camera_state() -> void:
 		_web_button.disabled = false
 		_web_button.text = "Enable Camera"
 	push_warning("Web camera timed out waiting for video.")
+
+
+func _update_web_live_texture() -> void:
+	# Pull a PNG snapshot from the hidden <video> and show it in this TextureRect.
+	# This keeps the face guide/UI drawn normally in Godot (on top), and allows
+	# the same crop/zoom behavior as the editor (via Control sizing/clipping).
+	var max_w := int(web_capture_max_size.x)
+	var max_h := int(web_capture_max_size.y)
+	var data_url := str(JavaScriptBridge.eval("window.godotCaptureCameraPngDataUrl && window.godotCaptureCameraPngDataUrl(%d,%d);" % [max_w, max_h], true))
+	if data_url == "" or not data_url.begins_with("data:image"):
+		return
+	var comma := data_url.find(",")
+	if comma == -1:
+		return
+	var b64 := data_url.substr(comma + 1)
+	var bytes: PackedByteArray = Marshalls.base64_to_raw(b64)
+	var img := Image.new()
+	var err := img.load_png_from_buffer(bytes)
+	if err != OK:
+		return
+
+	# Reuse an ImageTexture when possible to reduce allocations.
+	if texture is ImageTexture:
+		(texture as ImageTexture).update(img)
+	else:
+		texture = ImageTexture.create_from_image(img)
 
 func _ready() -> void:
 	_ensure_scaled_to_viewport()
@@ -444,24 +444,20 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not OS.has_feature("web"):
 		return
-	var result = JavaScriptBridge.eval("window.godotCameraReady === true", true)
-	if not bool(result):
+	if not _web_has_started:
+		# Keep polling the JS flag (in case the button got freed early).
+		_web_has_started = bool(JavaScriptBridge.eval("window.godotCameraReady === true", true))
+	if not _web_has_started:
 		return
-	var rect_provider := _web_rect_provider if _web_rect_provider != null else self
-	var rect := rect_provider.get_global_rect()
-	if rect == _web_last_rect:
+
+	# Limit the update rate for performance.
+	var fps: int = clampi(int(web_preview_fps), 1, 60)
+	_web_preview_accum += _delta
+	var interval: float = 1.0 / float(fps)
+	if _web_preview_accum < interval:
 		return
-	_web_last_rect = rect
-	var view_size := rect_provider.get_viewport_rect().size
-	var js := "window.godotUpdateCameraRect && window.godotUpdateCameraRect(%f,%f,%f,%f,%f,%f);" % [
-		rect.position.x,
-		rect.position.y,
-		rect.size.x,
-		rect.size.y,
-		view_size.x,
-		view_size.y,
-	]
-	JavaScriptBridge.eval(js, true)
+	_web_preview_accum = fmod(_web_preview_accum, interval)
+	_update_web_live_texture()
 
 
 func _ensure_scaled_to_viewport() -> void:
