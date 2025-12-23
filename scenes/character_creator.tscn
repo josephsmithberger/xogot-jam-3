@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://b3ugf34pfax0j"]
+[gd_scene load_steps=11 format=3 uid="uid://b3ugf34pfax0j"]
 
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="1_ja2xc"]
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_xm6ha"]
 [ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="2_6txqo"]
 [ext_resource type="PackedScene" uid="uid://ce6wni5ftmpr7" path="res://scenes/camera_feed.tscn" id="3_6txqo"]
 [ext_resource type="Texture2D" uid="uid://caxmhjkql2p3m" path="res://assets/face_guide.png" id="4_0yffs"]
+[ext_resource type="PackedScene" uid="uid://bp3gauex08urp" path="res://scenes/character_preview.tscn" id="6_oy0w6"]
 [ext_resource type="AudioStream" uid="uid://cggb52mi8hf57" path="res://assets/ui/camera-shutter.mp3" id="6_ucp7b"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0yffs"]
@@ -97,6 +98,18 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Shutter"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="SubViewport" type="SubViewport" parent="HBoxContainer/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(652, 452)
+render_target_update_mode = 4
+
+[node name="character_preview" parent="HBoxContainer/SubViewportContainer/SubViewport" instance=ExtResource("6_oy0w6")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_ucp7b")

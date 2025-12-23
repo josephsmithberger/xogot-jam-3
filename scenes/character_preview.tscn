@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://bp3gauex08urp"]
+
+[ext_resource type="Script" uid="uid://c6dt32xqeay4g" path="res://scripts/character_preview.gd" id="1_0v3wv"]
+[ext_resource type="PackedScene" uid="uid://bc7r1x85rve30" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/Lowpoly Stickman Rigged and Animated for Games.fbx" id="1_pqeaw"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0v3wv"]
+sky_top_color = Color(0.65333, 0.7144133, 0.79711413, 1)
+sky_horizon_color = Color(1.836022, 1.8512928, 1.871968, 1)
+ground_bottom_color = Color(1, 1, 1, 1)
+ground_horizon_color = Color(1.836022, 1.8512928, 1.871968, 1)
+
+[sub_resource type="Sky" id="Sky_pj4qa"]
+sky_material = SubResource("ProceduralSkyMaterial_0v3wv")
+
+[sub_resource type="Environment" id="Environment_4jeex"]
+background_mode = 2
+sky = SubResource("Sky_pj4qa")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="character_preview" type="Node3D"]
+script = ExtResource("1_0v3wv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_4jeex")
+
+[node name="Lowpoly Stickman Rigged and Animated for Games" parent="." instance=ExtResource("1_pqeaw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0058681965, 0, 0.45366025)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1283913, 7.158258)
