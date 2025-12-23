@@ -11,5 +11,12 @@ config_version=5
 [application]
 
 config/name="Xogot-Jam-3"
+run/main_scene="uid://wi83gdapbrsg"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/size/resizable=false

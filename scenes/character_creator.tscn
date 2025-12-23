@@ -1,0 +1,82 @@
+[gd_scene load_steps=8 format=3 uid="uid://b3ugf34pfax0j"]
+
+[ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="1_ja2xc"]
+[ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="2_6txqo"]
+[ext_resource type="PackedScene" uid="uid://ce6wni5ftmpr7" path="res://scenes/camera_feed.tscn" id="3_6txqo"]
+[ext_resource type="Texture2D" uid="uid://caxmhjkql2p3m" path="res://assets/face_guide.png" id="4_0yffs"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0yffs"]
+shader = ExtResource("1_ja2xc")
+shader_parameter/dimensions = Vector2(1152, 648)
+shader_parameter/rows = 20.0
+shader_parameter/columns = 5.0
+shader_parameter/vertical_scroll = 0.0899999756363199
+shader_parameter/horizontal_scroll = 0.0499999765304
+shader_parameter/size_min = 0.3
+shader_parameter/size_max = 0.7
+shader_parameter/wave_min = 0.1
+shader_parameter/wave_max = 1.0
+shader_parameter/wave_speed = 0.5
+shader_parameter/wave_rotation = 1.0
+shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/near_color = Color(1, 1, 1, 1)
+shader_parameter/particle_texture = ExtResource("2_6txqo")
+
+[sub_resource type="Gradient" id="Gradient_3yumr"]
+colors = PackedColorArray(0.28089997, 0.39714667, 0.53, 1, 0.3638468, 0.49529433, 0.6459862, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_xm6ha"]
+gradient = SubResource("Gradient_3yumr")
+
+[node name="character_creator" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_0yffs")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_xm6ha")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ShutterButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Shutter"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SubViewport" type="SubViewport" parent="CenterContainer/VBoxContainer/SubViewportContainer"]
+
+[node name="CameraFeed" parent="CenterContainer/VBoxContainer/SubViewportContainer/SubViewport" instance=ExtResource("3_6txqo")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 128.0
+offset_bottom = -152.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="CenterContainer/VBoxContainer/SubViewportContainer"]
+layout_mode = 2
+texture = ExtResource("4_0yffs")

@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://wi83gdapbrsg"]
+[gd_scene load_steps=11 format=3 uid="uid://wi83gdapbrsg"]
 
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_s4lrb"]
+[ext_resource type="Script" uid="uid://b0ij05ake7ldk" path="res://scripts/title_screen.gd" id="2_dc4i4"]
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="2_mgrm8"]
 [ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="3_dc4i4"]
 
@@ -21,19 +22,19 @@ shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
 shader_parameter/near_color = Color(1, 1, 1, 1)
 shader_parameter/particle_texture = ExtResource("3_dc4i4")
 
-[sub_resource type="Gradient" id="Gradient_3yumr"]
+[sub_resource type="Gradient" id="Gradient_e54dn"]
 colors = PackedColorArray(0.28089997, 0.39714667, 0.53, 1, 0.3638468, 0.49529433, 0.6459862, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_cs5ya"]
-gradient = SubResource("Gradient_3yumr")
+gradient = SubResource("Gradient_e54dn")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s4lrb"]
-bg_color = Color(0.3024, 0.41191998, 0.48, 0.6117647)
+bg_color = Color(0.83, 0.83, 0.83, 0.3372549)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-shadow_color = Color(0, 0, 0, 0.11764706)
+shadow_color = Color(0.6994803, 0.7090336, 0.11523438, 0.11764706)
 shadow_size = 10
 
 [sub_resource type="Gradient" id="Gradient_mykxm"]
@@ -57,6 +58,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_s4lrb")
+script = ExtResource("2_dc4i4")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 material = SubResource("ShaderMaterial_e54dn")
@@ -116,3 +118,5 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Add to Party"
+
+[connection signal="pressed" from="VBoxContainer/add_to_party" to="." method="_on_add_to_party_pressed"]

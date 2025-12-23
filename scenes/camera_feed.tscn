@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://ce6wni5ftmpr7"]
+
+[ext_resource type="Script" uid="uid://rd3cb8ro4era" path="res://scripts/camera_feed.gd" id="1_p5t0x"]
+
+[node name="CameraFeed" type="TextureRect"]
+custom_minimum_size = Vector2(640, 360)
+stretch_mode = 5
+script = ExtResource("1_p5t0x")
