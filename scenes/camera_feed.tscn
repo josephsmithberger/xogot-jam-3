@@ -4,5 +4,6 @@
 
 [node name="CameraFeed" type="TextureRect"]
 custom_minimum_size = Vector2(640, 360)
+mouse_filter = 0
 stretch_mode = 5
 script = ExtResource("1_p5t0x")

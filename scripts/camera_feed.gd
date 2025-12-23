@@ -4,12 +4,20 @@ signal photo_taken(image: Image)
 
 @export_enum("Auto", "Off", "SwapRedBlue") var mac_color_fix := "Auto"
 @export var debug_log := false
+@export var capture_dir := "user://captures"
+@export var web_capture_max_size := Vector2i(960, 540)
 
 var _feed_id: int = -1
 var _tex_y: CameraTexture
 var _tex_cbcr: CameraTexture
 
 var _web_button: Button
+var _flash_overlay: ColorRect
+
+var last_photo_image: Image
+var last_photo_texture: ImageTexture
+
+var _web_last_rect: Rect2
 
 
 func _add_web_enable_button() -> void:
@@ -29,6 +37,38 @@ func _add_web_enable_button() -> void:
 	_web_button.pressed.connect(_on_web_enable_pressed)
 
 
+
+
+
+func _add_flash_overlay() -> void:
+	_flash_overlay = ColorRect.new()
+	_flash_overlay.color = Color(1, 1, 1, 0)
+	_flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flash_overlay.anchor_left = 0.0
+	_flash_overlay.anchor_top = 0.0
+	_flash_overlay.anchor_right = 1.0
+	_flash_overlay.anchor_bottom = 1.0
+	_flash_overlay.offset_left = 0
+	_flash_overlay.offset_top = 0
+	_flash_overlay.offset_right = 0
+	_flash_overlay.offset_bottom = 0
+	add_child(_flash_overlay)
+
+
+func _play_flash() -> void:
+	$"../../../../../AudioStreamPlayer".play()
+	# Native flash overlay.
+	if _flash_overlay:
+		_flash_overlay.color.a = 0.0
+		var tween := create_tween()
+		tween.tween_property(_flash_overlay, "color:a", 0.9, 0.05)
+		tween.tween_property(_flash_overlay, "color:a", 0.0, 0.18)
+
+	# Web flash affects the DOM <video> (Godot overlay would be under the video).
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.godotFlashCamera && window.godotFlashCamera();", true)
+
+
 func _init_web_js() -> void:
 	JavaScriptBridge.eval("""
 	(() => {
@@ -41,8 +81,10 @@ func _init_web_js() -> void:
 				video.muted = true;
 				video.autoplay = true;
 				video.style.position = 'absolute';
-				video.style.objectFit = 'cover';
+				// 'contain' keeps the whole frame visible inside the rect.
+				video.style.objectFit = 'contain';
 				video.style.pointerEvents = 'none';
+				video.style.background = 'black';
 			}
 			return video;
 		};
@@ -51,6 +93,36 @@ func _init_web_js() -> void:
 
 		window.godotCameraReady = false;
 		window.godotCameraError = '';
+
+		window.godotFlashCamera = () => {
+			const video = document.getElementById('godot-camera-video');
+			if (!video) return;
+			video.style.transition = 'filter 80ms linear';
+			video.style.filter = 'brightness(1.8)';
+			setTimeout(() => {
+				video.style.filter = 'brightness(1.0)';
+			}, 140);
+		};
+
+		const setVideoRect = (video, rx, ry, rw, rh, vw, vh) => {
+			const canvas = findCanvas();
+			if (!canvas) return false;
+			const canvasRect = canvas.getBoundingClientRect();
+			const scaleX = (vw && vw > 0) ? (canvasRect.width / vw) : 1.0;
+			const scaleY = (vh && vh > 0) ? (canvasRect.height / vh) : 1.0;
+			video.style.left = (canvasRect.left + (rx * scaleX)) + 'px';
+			video.style.top = (canvasRect.top + (ry * scaleY)) + 'px';
+			video.style.width = Math.max(1, rw * scaleX) + 'px';
+			video.style.height = Math.max(1, rh * scaleY) + 'px';
+			video.style.position = 'fixed';
+			return true;
+		};
+
+		window.godotUpdateCameraRect = (rx, ry, rw, rh, vw, vh) => {
+			const video = document.getElementById('godot-camera-video');
+			if (!video) return;
+			setVideoRect(video, rx, ry, rw, rh, vw, vh);
+		};
 
 		window.godotStartCameraAtRect = async (rx, ry, rw, rh, vw, vh) => {
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -82,15 +154,7 @@ func _init_web_js() -> void:
 				parent.appendChild(video); // DOM order puts it above the canvas without z-index.
 			}
 
-			const canvasRect = canvas.getBoundingClientRect();
-			const scaleX = (vw && vw > 0) ? (canvasRect.width / vw) : 1.0;
-			const scaleY = (vh && vh > 0) ? (canvasRect.height / vh) : 1.0;
-			// Position the <video> to match the requested Godot Control rect.
-			video.style.left = (canvasRect.left + (rx * scaleX)) + 'px';
-			video.style.top = (canvasRect.top + (ry * scaleY)) + 'px';
-			video.style.width = Math.max(1, rw * scaleX) + 'px';
-			video.style.height = Math.max(1, rh * scaleY) + 'px';
-			video.style.position = 'fixed';
+			setVideoRect(video, rx, ry, rw, rh, vw, vh);
 
 			video.srcObject = stream;
 			try {
@@ -103,19 +167,48 @@ func _init_web_js() -> void:
 			window.godotCameraStream = stream;
 			window.godotCameraReady = true;
 		};
+
+		window.godotCaptureCameraPngDataUrl = (maxW, maxH) => {
+			const video = document.getElementById('godot-camera-video');
+			if (!video || !video.videoWidth || !video.videoHeight) return '';
+			const vw = video.videoWidth;
+			const vh = video.videoHeight;
+			let tw = vw;
+			let th = vh;
+			if (maxW && maxH && maxW > 0 && maxH > 0) {
+				const s = Math.min(maxW / vw, maxH / vh, 1.0);
+				tw = Math.max(1, Math.floor(vw * s));
+				th = Math.max(1, Math.floor(vh * s));
+			}
+			const c = document.createElement('canvas');
+			c.width = tw;
+			c.height = th;
+			const ctx = c.getContext('2d');
+			ctx.drawImage(video, 0, 0, tw, th);
+			try {
+				return c.toDataURL('image/png');
+			} catch (e) {
+				console.error('toDataURL failed', e);
+				return '';
+			}
+		};
 	})();
 	""", true)
 
 
 func take_photo() -> void:
-	var image := _capture_texture_rect_from_viewport()
+	var image := _capture_photo_image()
 	if image == null:
 		push_warning("Failed to capture photo.")
 		return
+	last_photo_image = image
+	last_photo_texture = ImageTexture.create_from_image(image)
+	_save_image_safely(image)
 	photo_taken.emit(image)
 
 
 func _on_shutter_pressed() -> void:
+	_play_flash()
 	take_photo()
 
 
@@ -149,6 +242,41 @@ func _capture_texture_rect_from_viewport() -> Image:
 	h = clamp(h, 1, img_h - y)
 
 	return viewport_img.get_region(Rect2i(x, y, w, h))
+
+
+func _capture_photo_image() -> Image:
+	if OS.has_feature("web"):
+		# Web camera is a DOM <video>; capture directly in JS.
+		var max_w := int(web_capture_max_size.x)
+		var max_h := int(web_capture_max_size.y)
+		var data_url := str(JavaScriptBridge.eval("window.godotCaptureCameraPngDataUrl && window.godotCaptureCameraPngDataUrl(%d,%d);" % [max_w, max_h], true))
+		if data_url == "" or not data_url.begins_with("data:image"):
+			return null
+		var comma := data_url.find(",")
+		if comma == -1:
+			return null
+		var b64 := data_url.substr(comma + 1)
+		var bytes: PackedByteArray = Marshalls.base64_to_raw(b64)
+		var img := Image.new()
+		var err := img.load_png_from_buffer(bytes)
+		if err != OK:
+			return null
+		return img
+
+	return _capture_texture_rect_from_viewport()
+
+
+func _save_image_safely(image: Image) -> void:
+	# Use user:// so it persists on desktop and is safe/sandboxed on web exports.
+	if image == null:
+		return
+	DirAccess.make_dir_recursive_absolute(capture_dir)
+	var dt := Time.get_datetime_dict_from_system()
+	var stamp := "%04d%02d%02d-%02d%02d%02d" % [dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second]
+	var path := "%s/capture-%s.png" % [capture_dir, stamp]
+	var err := image.save_png(path)
+	if err != OK:
+		push_warning("Failed to save capture: %s (err=%d)" % [path, err])
 
 
 func _on_web_enable_pressed() -> void:
@@ -193,6 +321,9 @@ func _poll_web_camera_state() -> void:
 	push_warning("Web camera timed out waiting for video.")
 
 func _ready() -> void:
+	_ensure_scaled_to_viewport()
+	_add_flash_overlay()
+
 	if OS.has_feature("web"):
 		# Godot Web exports don't currently pipe getUserMedia() into CameraTexture.
 		# Minimal working approach: show an HTML <video> overlay, started only by user gesture.
@@ -285,6 +416,36 @@ func _ready() -> void:
 		await get_tree().process_frame
 
 	push_warning("No camera feeds found (permission denied or no camera available).")
+
+
+func _process(_delta: float) -> void:
+	if not OS.has_feature("web"):
+		return
+	var result = JavaScriptBridge.eval("window.godotCameraReady === true", true)
+	if not bool(result):
+		return
+	var rect := get_global_rect()
+	if rect == _web_last_rect:
+		return
+	_web_last_rect = rect
+	var view_size := get_viewport_rect().size
+	var js := "window.godotUpdateCameraRect && window.godotUpdateCameraRect(%f,%f,%f,%f,%f,%f);" % [
+		rect.position.x,
+		rect.position.y,
+		rect.size.x,
+		rect.size.y,
+		view_size.x,
+		view_size.y,
+	]
+	JavaScriptBridge.eval(js, true)
+
+
+func _ensure_scaled_to_viewport() -> void:
+	# Ensure the camera texture scales to this Control's rect (instead of keeping native texture size).
+	if expand_mode != TextureRect.EXPAND_IGNORE_SIZE:
+		expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	if stretch_mode != TextureRect.STRETCH_KEEP_ASPECT_CENTERED:
+		stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
 func _apply_swap_rb_material() -> void:
