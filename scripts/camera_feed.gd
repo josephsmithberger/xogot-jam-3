@@ -7,6 +7,7 @@ signal photo_taken(image: Image)
 @export var capture_dir := "user://captures"
 @export var web_capture_max_size := Vector2i(960, 540)
 @export_range(1, 60, 1) var web_preview_fps := 15
+@export var photo_mask: Texture2D
 
 var _feed_id: int = -1
 var _tex_y: CameraTexture
@@ -195,10 +196,87 @@ func take_photo() -> void:
 	if image == null:
 		push_warning("Failed to capture photo.")
 		return
+
+	if photo_mask:
+		image = _apply_photo_mask(image, photo_mask)
+	else:
+		if debug_log:
+			print("[camera_feed] No photo_mask assigned in Inspector.")
+
 	last_photo_image = image
 	last_photo_texture = ImageTexture.create_from_image(image)
 	_save_image_safely(image)
 	photo_taken.emit(image)
+
+
+func _apply_photo_mask(image: Image, mask_tex: Texture2D) -> Image:
+	if image == null or mask_tex == null:
+		return image
+	var mask_img := mask_tex.get_image()
+	if mask_img == null:
+		return image
+
+	# Work on duplicates so we never mutate imported resources.
+	mask_img = mask_img.duplicate()
+	image = image.duplicate()
+
+	# Ensure the photo supports alpha.
+	if image.get_format() != Image.FORMAT_RGBA8:
+		image.convert(Image.FORMAT_RGBA8)
+
+	var w := image.get_width()
+	var h := image.get_height()
+	if w <= 0 or h <= 0:
+		return image
+
+	if mask_img.get_size() != Vector2i(w, h):
+		mask_img.resize(w, h)
+
+	var use_alpha := mask_img.detect_alpha() != Image.ALPHA_NONE
+	if use_alpha:
+		if mask_img.get_format() != Image.FORMAT_RGBA8:
+			mask_img.convert(Image.FORMAT_RGBA8)
+	else:
+		if mask_img.get_format() != Image.FORMAT_L8:
+			mask_img.convert(Image.FORMAT_L8)
+
+	var photo_data := image.get_data()
+	var mask_data := mask_img.get_data()
+	if photo_data.is_empty() or mask_data.is_empty():
+		return image
+
+	# If BW mask, auto-invert when it's mostly white.
+	var invert_bw := false
+	if not use_alpha:
+		var sum := 0
+		for v in mask_data:
+			sum += int(v)
+		var avg := float(sum) / float(maxi(1, mask_data.size()))
+		invert_bw = avg > 127.0
+		if invert_bw and debug_log:
+			print("[camera_feed] BW mask looks inverted (avg=", avg, "); inverting")
+
+	# Apply mask to the photo's alpha channel.
+	# RGBA8 layout: [r,g,b,a] per pixel.
+	var pixel_count := w * h
+	if photo_data.size() < pixel_count * 4:
+		return image
+	if use_alpha and mask_data.size() < pixel_count * 4:
+		return image
+	if (not use_alpha) and mask_data.size() < pixel_count:
+		return image
+
+	for i in range(pixel_count):
+		var a: int
+		if use_alpha:
+			a = int(mask_data[i * 4 + 3])
+		else:
+			a = int(mask_data[i])
+			if invert_bw:
+				a = 255 - a
+		photo_data[i * 4 + 3] = a
+
+	return Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, photo_data)
 
 
 func _on_shutter_pressed() -> void:

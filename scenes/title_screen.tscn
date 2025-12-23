@@ -107,7 +107,12 @@ text = "Start Game"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Current
+Party:"
 
 [node name="party_member" type="TextureRect" parent="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2

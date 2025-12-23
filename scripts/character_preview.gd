@@ -1,7 +1,7 @@
 extends Node3D
 
 var anim_player: AnimationPlayer
-var face_sprite: Sprite3D
+var face_decal: Decal
 
 func _ready() -> void:
 	var stickman = $"Lowpoly Stickman Rigged and Animated for Games"
@@ -28,20 +28,22 @@ func _setup_face_attachment():
 			attachment.bone_name = bone_name
 			skeleton.add_child(attachment)
 			
-			face_sprite = Sprite3D.new()
-			# Adjust pixel size based on your texture resolution and desired world size
-			face_sprite.pixel_size = 0.01
-			face_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
-			face_sprite.no_depth_test = true # Ensure it renders on top
+			face_decal = Decal.new()
+			# Set decal size (width, height, depth)
+			# Adjust these values to fit the face dimensions
+			# x=width, z=height (due to rotation), y=projection depth
+			face_decal.size = Vector3(2.8, 10.91, 2.17)
 			
 			# Position relative to the Head bone. 
-			# Adjust these values based on the character's scale.
-			# Assuming Z is forward, Y is up.
-			face_sprite.position = Vector3(0, 0.25, 0.15) 
-			face_sprite.scale = Vector3(1.5, 1.5, 1.5)
+			# Positioned slightly in front of the face
+			face_decal.position = Vector3(0, 0.64, 0) 
 			
-			attachment.add_child(face_sprite)
-			print("Face attachment created on bone: ", bone_name)
+			# Rotate to project backwards onto the face (Local -Y is projection axis)
+			# Rotating 90 degrees around X makes local -Y point towards global -Z (backwards)
+			face_decal.rotation_degrees = Vector3(90, 0, 0)
+			
+			attachment.add_child(face_decal)
+			print("Face decal created on bone: ", bone_name)
 		else:
 			print("Head bone 'Stickman_Joint_5' not found.")
 	else:
@@ -67,7 +69,7 @@ func confirm(image: Image):
 		anim_player.speed_scale = 1.0
 		anim_player.play(anims.pick_random())
 	
-	if face_sprite and image:
+	if face_decal and image:
 		image.flip_y()
 		var tex = ImageTexture.create_from_image(image)
-		face_sprite.texture = tex
+		face_decal.texture_albedo = tex
