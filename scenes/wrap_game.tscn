@@ -1,0 +1,92 @@
+[gd_scene load_steps=15 format=3 uid="uid://jy70t1gs78le"]
+
+[ext_resource type="ArrayMesh" uid="uid://crpfb8idvvjll" path="res://assets/model.obj" id="1_5du7x"]
+[ext_resource type="PackedScene" uid="uid://pxph580e054" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/Lowpoly Stickman Rigged and Animated for Games/Lowpoly Stickman Rigged and Animated for Games.fbx" id="2_anslr"]
+[ext_resource type="Texture2D" uid="uid://bovi5a5yr63iw" path="res://assets/wrapping_paper_texture.jpg" id="3_162jx"]
+[ext_resource type="Texture2D" uid="uid://b341wtc2kd6f2" path="res://assets/box_texture.jpg" id="4_anslr"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6x1my"]
+albedo_texture = ExtResource("3_162jx")
+albedo_texture_force_srgb = true
+metallic = 1.0
+roughness = 0.2
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_jv2ku"]
+material = SubResource("StandardMaterial3D_6x1my")
+size = Vector2(4.44, 2.87)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_q2njf"]
+load_path = "res://.godot/imported/istockphoto-892018488-612x612.jpg-b69c782601a5cb8ac304e8eef05308cb.s3tc.ctex"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4k1dw"]
+albedo_texture = SubResource("CompressedTexture2D_q2njf")
+albedo_texture_force_srgb = true
+metallic = 1.0
+roughness = 0.2
+uv1_triplanar = true
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7g7mu"]
+material = SubResource("StandardMaterial3D_4k1dw")
+top_radius = 0.13
+bottom_radius = 0.13
+height = 3.025
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wcnmt"]
+sky_top_color = Color(0.65333, 0.7144133, 0.79711413, 1)
+sky_horizon_color = Color(1.836022, 1.8512928, 1.871968, 1)
+ground_bottom_color = Color(1, 1, 1, 1)
+ground_horizon_color = Color(1.836022, 1.8512928, 1.871968, 1)
+
+[sub_resource type="Sky" id="Sky_pj4qa"]
+sky_material = SubResource("ProceduralSkyMaterial_wcnmt")
+
+[sub_resource type="Environment" id="Environment_cvt3e"]
+background_mode = 2
+background_energy_multiplier = 0.7
+sky = SubResource("Sky_pj4qa")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_162jx"]
+albedo_texture = ExtResource("4_anslr")
+uv1_scale = Vector3(-0.54, -0.54, -0.54)
+uv1_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_6x1my"]
+material = SubResource("StandardMaterial3D_162jx")
+
+[node name="wrap_game" type="Node3D"]
+
+[node name="table" type="MeshInstance3D" parent="."]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0.026176453, -0.12224156, 0.044207215)
+mesh = ExtResource("1_5du7x")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.98099923, 0.19401179, 0, -0.19401179, 0.98099923, 0, 2.8494723, 4.974084)
+
+[node name="Lowpoly Stickman Rigged and Animated for Games" parent="." instance=ExtResource("2_anslr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.162, -1.413, -3.123)
+
+[node name="paper" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.84666824, 0.65625334, 0)
+mesh = SubResource("PlaneMesh_jv2ku")
+
+[node name="paper_roll" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 1.3626015, 0.78942955, 0)
+mesh = SubResource("CylinderMesh_7g7mu")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_cvt3e")
+
+[node name="box" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3892808, 0)
+mesh = SubResource("BoxMesh_6x1my")
+skeleton = NodePath("../AnimationPlayer")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
