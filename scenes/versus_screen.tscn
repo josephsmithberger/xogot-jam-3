@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://2l8nf4b1imng"]
+[gd_scene load_steps=10 format=3 uid="uid://2l8nf4b1imng"]
 
+[ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_dalq4"]
 [ext_resource type="Script" uid="uid://gpu1mew80s07" path="res://scripts/versus_screen.gd" id="1_oscwy"]
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="1_xutr6"]
 [ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="2_oscwy"]
+[ext_resource type="PackedScene" uid="uid://dn776ufifn0ly" path="res://scenes/player_portrait.tscn" id="4_crm16"]
+[ext_resource type="AudioStream" uid="uid://ckgilm1ogrj2k" path="res://assets/cinematicboom.mp3" id="5_dalq4"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_swv1y"]
 shader = ExtResource("1_xutr6")
@@ -34,6 +37,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_dalq4")
 script = ExtResource("1_oscwy")
 
 [node name="bg" type="TextureRect" parent="."]
@@ -48,10 +52,30 @@ texture = SubResource("GradientTexture2D_crm16")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 9
 anchor_bottom = 1.0
-grow_horizontal = 2
+offset_right = 1152.0
 grow_vertical = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="player_portrait" parent="HBoxContainer" instance=ExtResource("4_crm16")]
+layout_mode = 2
+alignment = 0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_dalq4")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Are you ready to"
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Start Game?"

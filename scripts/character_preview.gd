@@ -60,7 +60,10 @@ func _on_animation_finished(anim_name: String):
 		_play_idle()
 
 func confirm(image: Image):
-	$"../../../../AnimationPlayer".play("confirm")
+	var ui_anim = get_node_or_null("../../../../AnimationPlayer")
+	if ui_anim:
+		ui_anim.play("confirm")
+	
 	var anims = [
 		"Swing_Dancing",
 		"Thriller_Part_3"
@@ -70,6 +73,7 @@ func confirm(image: Image):
 		anim_player.play(anims.pick_random())
 	
 	if face_decal and image:
-		image.flip_y()
-		var tex = ImageTexture.create_from_image(image)
+		var img_copy = image.duplicate()
+		img_copy.flip_y()
+		var tex = ImageTexture.create_from_image(img_copy)
 		face_decal.texture_albedo = tex

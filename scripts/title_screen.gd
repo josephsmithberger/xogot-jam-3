@@ -20,3 +20,7 @@ func _ready() -> void:
 
 func _on_add_to_party_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_creator.tscn")
+
+
+func _on_start_game_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/versus_screen.tscn")
