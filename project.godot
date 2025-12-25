@@ -25,3 +25,7 @@ window/size/viewport_width=960
 window/size/viewport_height=540
 window/size/resizable=false
 window/stretch/mode="viewport"
+
+[editor]
+
+movie_writer/movie_file="/Users/josephsmithberger/Desktop/movie.ogv"
