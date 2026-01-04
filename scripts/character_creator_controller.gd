@@ -18,7 +18,7 @@ func _on_confirm_name_pressed() -> void:
 	Global.player_data[player_input.text] = current_image
 	get_tree().change_scene_to_file("res://scenes/title_screen.tscn")
 
-func _on_player_name_text_changed(new_text: String) -> void:
+func _on_player_name_text_changed(_new_text: String) -> void:
 	if $PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/confirm_name.disabled:
 		$PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/confirm_name.disabled = false
 
