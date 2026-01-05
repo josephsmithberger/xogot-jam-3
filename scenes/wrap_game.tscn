@@ -1,10 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://jy70t1gs78le"]
+[gd_scene load_steps=17 format=3 uid="uid://jy70t1gs78le"]
 
 [ext_resource type="Shader" uid="uid://dfc1mrmc3ay6e" path="res://shaders/gift.gdshader" id="1_5du7x"]
 [ext_resource type="Texture2D" uid="uid://b341wtc2kd6f2" path="res://assets/box_texture.jpg" id="2_anslr"]
 [ext_resource type="Texture2D" uid="uid://bovi5a5yr63iw" path="res://assets/wrapping_paper_texture.jpg" id="3_162jx"]
 [ext_resource type="PackedScene" uid="uid://cvfx2n6wl8hmn" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/animation_copy.glb" id="4_anslr"]
 [ext_resource type="Script" uid="uid://bhq1g4hwq381n" path="res://scripts/wrap_game.gd" id="5_wrap_game"]
+[ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="6_6x1my"]
+[ext_resource type="Script" uid="uid://boay3gxmqa7g0" path="res://scenes/timer.gd" id="7_jv2ku"]
+[ext_resource type="Script" uid="uid://dayn8yw4t50jn" path="res://scripts/gift_box.gd" id="8_gift_box"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6x1my"]
 sky_top_color = Color(0.65333, 0.7144133, 0.79711413, 1)
@@ -30,8 +33,23 @@ shader_parameter/top_tex = ExtResource("3_162jx")
 [sub_resource type="BoxMesh" id="BoxMesh_4k1dw"]
 material = SubResource("ShaderMaterial_q2njf")
 
+[sub_resource type="Gradient" id="Gradient_brush"]
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_brush"]
+gradient = SubResource("Gradient_brush")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gift"]
+
 [node name="wrap_game" type="Node3D"]
 script = ExtResource("5_wrap_game")
+head_rotation_offset = Vector3(0, 0, 0)
+box_move_amount = 0.5
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
@@ -43,6 +61,28 @@ environment = SubResource("Environment_jv2ku")
 [node name="gift_box" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 2.2806878)
 mesh = SubResource("BoxMesh_4k1dw")
+script = ExtResource("8_gift_box")
+
+[node name="MaskViewport" type="SubViewport" parent="gift_box"]
+size = Vector2i(1024, 1024)
+render_target_clear_mode = 2
+render_target_update_mode = 3
+
+[node name="Background" type="ColorRect" parent="gift_box/MaskViewport"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Brush" type="Sprite2D" parent="gift_box/MaskViewport"]
+scale = Vector2(2.5, 2.5)
+texture = SubResource("GradientTexture2D_brush")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="gift_box"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="gift_box/StaticBody3D"]
+shape = SubResource("BoxShape3D_gift")
 
 [node name="GripPoints" type="Node3D" parent="gift_box"]
 
@@ -68,4 +108,46 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.3, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1283913, 7.158258)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.927885, 7.899938)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("6_6x1my")
+script = ExtResource("7_jv2ku")
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/MarginContainer"]
+layout_mode = 2
+
+[node name="name" type="Label" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.27569968, 0.27569968, 0.27569965, 1)
+text = "Player Name"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="timer" type="Label" parent="CanvasLayer/Control/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 30
+text = "0:00"
+horizontal_alignment = 1

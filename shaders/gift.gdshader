@@ -9,7 +9,7 @@ void fragment() {
 
     vec4 base = texture(base_tex, uv);
     vec4 top = texture(top_tex, uv);
-    float mask = texture(mask_tex, uv).r;
+    float mask = texture(mask_tex, UV2).r;
 
     ALBEDO = mix(base.rgb, top.rgb, mask);
     ALPHA = 1.0;
