@@ -33,7 +33,7 @@ const RIGHT_FOOT_BONE := "Stickman_Joint_22"
 @onready var timer_ui: Control = $CanvasLayer/Control
 @onready var camera: Camera3D = $Camera3D
 
-var face_decal: Decal
+var face_decal: DecalCompatibility
 var _skeleton: Skeleton3D
 var _left_ik: SkeletonIK3D
 var _right_ik: SkeletonIK3D
@@ -382,11 +382,11 @@ func _setup_face_attachment() -> void:
 		attachment.bone_name = bone_name
 		_skeleton.add_child(attachment)
 		
-		face_decal = Decal.new()
-		face_decal.size = Vector3(2.8, 14.58, 2.17)
-		face_decal.position = Vector3(0, 0.64, 0)
-		face_decal.rotation_degrees = Vector3(90, 0, 0)
-		face_decal.cull_mask = 1048575
+		face_decal = DecalCompatibility.new()
+		face_decal.size = Vector3(2.46, 14.58, 2.17)
+		face_decal.position = Vector3(-0.06, 0.77, -1.38)
+		face_decal.rotation_degrees = Vector3(-84.28, 0, 0)
+		# face_decal.cull_mask = 1048575 # Not supported in DecalCompatibility directly or handled differently
 		
 		attachment.add_child(face_decal)
 		
@@ -403,7 +403,7 @@ func _setup_face_attachment() -> void:
 		# Default texture
 		var default_tex = load("res://assets/test.png")
 		if default_tex:
-			face_decal.texture_albedo = default_tex
+			face_decal.texture = default_tex
 			print("Default texture loaded")
 		else:
 			print("Failed to load default texture")
@@ -440,6 +440,6 @@ func _on_game_finished() -> void:
 func set_face_texture(image: Image) -> void:
 	if face_decal and image:
 		var img_copy = image.duplicate()
-		img_copy.flip_y()
+		# img_copy.flip_y() # Removed flip_y as per previous fix
 		var tex = ImageTexture.create_from_image(img_copy)
-		face_decal.texture_albedo = tex
+		face_decal.texture = tex

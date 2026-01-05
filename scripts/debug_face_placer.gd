@@ -1,12 +1,12 @@
 extends Node3D
 
 @export_group("Decal Settings")
-@export var decal_position: Vector3 = Vector3(0, 0.25, 0.15)
-@export var decal_rotation: Vector3 = Vector3(90, 0, 0)
-@export var decal_size: Vector3 = Vector3(0.3, 0.5, 0.3)
+@export var decal_position: Vector3 = Vector3(-0.06, 0.77, -1.38)
+@export var decal_rotation: Vector3 = Vector3(-84.28, 0, 0)
+@export var decal_size: Vector3 = Vector3(2.46, 14.58, 2.17)
 @export var debug_texture: Texture2D
 
-var face_decal: Decal
+var face_decal: DecalCompatibility
 var attachment: BoneAttachment3D
 
 func _ready() -> void:
@@ -21,8 +21,8 @@ func _process(delta: float) -> void:
 		face_decal.position = decal_position
 		face_decal.rotation_degrees = decal_rotation
 		face_decal.size = decal_size
-		if face_decal.texture_albedo != debug_texture:
-			face_decal.texture_albedo = debug_texture
+		if face_decal.texture != debug_texture:
+			face_decal.texture = debug_texture
 
 func _setup_face_attachment():
 	var skeleton = find_child("Skeleton3D", true, false)
@@ -35,17 +35,14 @@ func _setup_face_attachment():
 			attachment.bone_name = bone_name
 			skeleton.add_child(attachment)
 			
-			face_decal = Decal.new()
+			face_decal = DecalCompatibility.new()
 			attachment.add_child(face_decal)
 			
 			# Set initial values
 			face_decal.position = decal_position
 			face_decal.rotation_degrees = decal_rotation
 			face_decal.size = decal_size
-			face_decal.texture_albedo = debug_texture
-			
-			# Ensure visibility
-			face_decal.cull_mask = 1048575 
+			face_decal.texture = debug_texture
 			
 			print("Debug Decal created on bone: ", bone_name)
 		else:

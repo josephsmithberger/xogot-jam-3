@@ -99,14 +99,14 @@ func _attach_face(character_node: Node3D, face_image: Image) -> void:
 			attachment.bone_name = bone_name
 			skeleton.add_child(attachment)
 			
-			var face_decal = Decal.new()
-			face_decal.size = Vector3(2.8, 10.91, 2.17)
-			face_decal.position = Vector3(0, 0.64, 0)
-			face_decal.rotation_degrees = Vector3(90, 0, 0)
+			var face_decal = DecalCompatibility.new()
+			face_decal.size = Vector3(2.46, 14.58, 2.17)
+			face_decal.position = Vector3(-0.06, 0.77, -1.38)
+			face_decal.rotation_degrees = Vector3(-84.28, 0, 0)
 			
 			var img_copy = face_image.duplicate()
-			img_copy.flip_y()
+			# img_copy.flip_y() # Removed flip_y
 			var texture = ImageTexture.create_from_image(img_copy)
-			face_decal.texture_albedo = texture
+			face_decal.texture = texture
 			
 			attachment.add_child(face_decal)

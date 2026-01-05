@@ -1,7 +1,7 @@
 extends Node3D
 
 var anim_player: AnimationPlayer
-var face_decal: Decal
+var face_decal: DecalCompatibility
 
 func _ready() -> void:
 	var stickman = $"Lowpoly Stickman Rigged and Animated for Games"
@@ -28,19 +28,19 @@ func _setup_face_attachment():
 			attachment.bone_name = bone_name
 			skeleton.add_child(attachment)
 			
-			face_decal = Decal.new()
+			face_decal = DecalCompatibility.new()
 			# Set decal size (width, height, depth)
 			# Adjust these values to fit the face dimensions
 			# x=width, z=height (due to rotation), y=projection depth
-			face_decal.size = Vector3(2.8, 10.91, 2.17)
+			face_decal.size = Vector3(2.46, 14.58, 2.17)
 			
 			# Position relative to the Head bone. 
 			# Positioned slightly in front of the face
-			face_decal.position = Vector3(0, 0.64, 0) 
+			face_decal.position = Vector3(-0.06, 0.77, -1.38) 
 			
 			# Rotate to project backwards onto the face (Local -Y is projection axis)
 			# Rotating 90 degrees around X makes local -Y point towards global -Z (backwards)
-			face_decal.rotation_degrees = Vector3(90, 0, 0)
+			face_decal.rotation_degrees = Vector3(-84.28, 0, 0)
 			
 			attachment.add_child(face_decal)
 			print("Face decal created on bone: ", bone_name)
@@ -74,6 +74,5 @@ func confirm(image: Image):
 	
 	if face_decal and image:
 		var img_copy = image.duplicate()
-		img_copy.flip_y()
 		var tex = ImageTexture.create_from_image(img_copy)
-		face_decal.texture_albedo = tex
+		face_decal.texture = tex

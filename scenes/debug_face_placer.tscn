@@ -18,9 +18,6 @@ tonemap_mode = 2
 
 [node name="DebugFacePlacer" type="Node3D"]
 script = ExtResource("1_script")
-decal_position = Vector3(0, 0.64, 0)
-decal_rotation = Vector3(-90, 0, 0)
-decal_size = Vector3(2.8, 14.58, 2.17)
 debug_texture = ExtResource("2_05vh0")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
