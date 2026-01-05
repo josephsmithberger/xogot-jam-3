@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://wi83gdapbrsg"]
+[gd_scene load_steps=13 format=3 uid="uid://wi83gdapbrsg"]
 
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_s4lrb"]
 [ext_resource type="Script" uid="uid://b0ij05ake7ldk" path="res://scripts/title_screen.gd" id="2_dc4i4"]
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="2_mgrm8"]
 [ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="3_dc4i4"]
 [ext_resource type="Theme" uid="uid://dokxm2t80pqbg" path="res://assets/ui/kenneyUI-red.tres" id="5_dc4i4"]
+[ext_resource type="Texture2D" uid="uid://dlxu0nno643a6" path="res://assets/logo.png" id="5_e54dn"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_e54dn"]
 shader = ExtResource("2_mgrm8")
@@ -83,6 +84,8 @@ alignment = 1
 
 [node name="title" type="TextureRect" parent="VBoxContainer"]
 layout_mode = 2
+texture = ExtResource("5_e54dn")
+stretch_mode = 3
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
