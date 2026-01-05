@@ -17,9 +17,9 @@ func _ready() -> void:
 	reset()
 
 func start_game() -> void:
+	reset()
 	is_game_active = true
 	time_elapsed = 0.0
-	reset()
 
 func reset():
 	time_elapsed = 0.0

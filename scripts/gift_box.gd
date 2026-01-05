@@ -18,12 +18,31 @@ func _ready() -> void:
 	if mat:
 		mat.set_shader_parameter("mask_tex", mask_viewport.get_texture())
 	
-	# Wait for a few frames to ensure the background is drawn, then remove it
+	# Wait for a few frames to ensure the background is drawn, then hide it
 	# so it doesn't overwrite the brush strokes.
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if is_instance_valid(background):
-		background.queue_free()
+		background.visible = false
+
+func reset() -> void:
+	_is_fully_unwrapped = false
+	_check_timer = 0.0
+	
+	# Clear any black overlay from force_unwrap
+	for child in mask_viewport.get_children():
+		if child is ColorRect and child != background:
+			child.queue_free()
+	
+	if is_instance_valid(background):
+		background.visible = true
+		# Wait for draw
+		await get_tree().process_frame
+		await get_tree().process_frame
+		background.visible = false
+	
+	unwrapped_percent_changed.emit(0.0)
+
 
 func _process(delta: float) -> void:
 	if _is_fully_unwrapped:

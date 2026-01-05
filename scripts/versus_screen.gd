@@ -107,3 +107,7 @@ func _create_player_portrait(p_name: String, p_photo: Image, delay: float) -> vo
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+
+func _on_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/wrap_game.tscn")

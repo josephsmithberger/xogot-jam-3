@@ -45,7 +45,11 @@ var _right_hand_idx := -1
 var _head_idx := -1
 var _initial_player_rotation: Vector3
 var _initial_box_position: Vector3
+var _initial_box_rotation: Vector3
 var _current_shake_intensity: float = 0.0
+
+var _player_keys: Array = []
+var _current_player_index: int = 0
 
 
 func _ready() -> void:
@@ -57,6 +61,7 @@ func _ready() -> void:
 	if player is Node3D:
 		_initial_player_rotation = player.rotation
 	_initial_box_position = gift_box.position
+	_initial_box_rotation = gift_box.rotation
 
 	for child in grip_points_root.get_children():
 		if child is Node3D:
@@ -68,13 +73,65 @@ func _ready() -> void:
 	
 	gift_box.unwrapped_percent_changed.connect(_on_unwrapped_percent_changed)
 	timer_ui.game_finished.connect(_on_game_finished)
+	
+	_player_keys = Global.player_data.keys()
+	if _player_keys.is_empty():
+		_player_keys.append("default")
+		Global.player_data["default"] = {"name": "Player 1"}
+		
+	_start_turn()
+
+
+func _start_turn() -> void:
+	if _current_player_index >= _player_keys.size():
+		get_tree().change_scene_to_file("res://scenes/versus_screen.tscn")
+		return
+
+	var player_key = _player_keys[_current_player_index]
+	var data = Global.player_data[player_key]
+	
+	var p_name = str(player_key)
+	var p_face = null
+	
+	if data is Dictionary:
+		if data.has("name"):
+			p_name = data["name"]
+		if data.has("face_texture"):
+			p_face = data["face_texture"]
+	elif data is Image:
+		p_face = data
+		
+	timer_ui.name_label.text = p_name
+	
+	if p_face:
+		set_face_texture(p_face)
+		
+	# Reset game state
+	camera.fov = start_fov
+	body_sway_amount = start_sway
+	_current_shake_intensity = 0.0
+	gift_box.rotation = _initial_box_rotation
+	gift_box.position = _initial_box_position
+	if player is Node3D:
+		player.rotation = _initial_player_rotation
+		
+	await gift_box.reset()
+	
+	$AnimationPlayer.play("in")
+	await $AnimationPlayer.animation_finished
+	
+	set_process(true)
 	timer_ui.start_game()
 
 
 
 func _process(delta: float) -> void:
 	_update_head_look_at(delta)
-	var input_vec := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	
+	var input_vec := Vector2.ZERO
+	if timer_ui.is_game_active:
+		input_vec = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+		
 	if not input_vec.is_zero_approx():
 		# Rotate around global axes so controls stay consistent
 		gift_box.rotate(Vector3.UP, input_vec.x * rotation_speed_rad * delta)
@@ -369,6 +426,15 @@ func _on_unwrapped_percent_changed(percent: float) -> void:
 func _on_game_finished() -> void:
 	set_process(false)
 	print("Game Finished!")
+	
+	var player_key = _player_keys[_current_player_index]
+	Global.score_data[player_key] = timer_ui.time_elapsed
+	
+	$AnimationPlayer.play("out")
+	await $AnimationPlayer.animation_finished
+	
+	_current_player_index += 1
+	_start_turn()
 
 
 func set_face_texture(image: Image) -> void:
