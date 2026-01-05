@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://jy70t1gs78le"]
+[gd_scene load_steps=24 format=3 uid="uid://jy70t1gs78le"]
 
 [ext_resource type="Shader" uid="uid://dfc1mrmc3ay6e" path="res://shaders/gift.gdshader" id="1_5du7x"]
 [ext_resource type="Texture2D" uid="uid://b341wtc2kd6f2" path="res://assets/box_texture.jpg" id="2_anslr"]
@@ -10,6 +10,7 @@
 [ext_resource type="AudioStream" uid="uid://bqyff6d6ll7jo" path="res://assets/sounds/referee-whistle.mp3" id="7_7g7mu"]
 [ext_resource type="Script" uid="uid://dayn8yw4t50jn" path="res://scripts/gift_box.gd" id="8_gift_box"]
 [ext_resource type="Script" uid="uid://c0cuq6pl5raut" path="res://scripts/timer.gd" id="8_q2njf"]
+[ext_resource type="AudioStream" uid="uid://bvu8eaflmqevy" path="res://assets/sounds/unwrapping-a-christmas-present-451854.mp3" id="11_wcnmt"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6x1my"]
 sky_top_color = Color(0.65333, 0.7144133, 0.79711413, 1)
@@ -257,3 +258,6 @@ horizontal_alignment = 1
 libraries = {
 &"": SubResource("AnimationLibrary_wcnmt")
 }
+
+[node name="unwrap_audio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_wcnmt")

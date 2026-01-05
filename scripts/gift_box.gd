@@ -1,16 +1,20 @@
 extends MeshInstance3D
 
 signal unwrapped_percent_changed(percent: float)
+signal unwrap_stroke()
 
 @onready var mask_viewport: SubViewport = $MaskViewport
 @onready var mask_brush: Sprite2D = $MaskViewport/Brush
 @onready var background: ColorRect = $MaskViewport/Background
 
+var unwrap_enabled: bool = false
 var _check_timer: float = 0.0
-const CHECK_INTERVAL: float = 0.2
+const CHECK_INTERVAL: float = 0.05
 var _is_fully_unwrapped: bool = false
 var _last_brush_pos: Vector2 = Vector2(-1, -1)
 var _last_face_idx: int = -1  # Track which face we were on
+var _stroke_distance_accumulator: float = 0.0
+const STROKE_SOUND_THRESHOLD: float = 15.0  # Emit sound every N pixels of movement
 
 func _ready() -> void:
 	_setup_gift_mesh()
@@ -32,6 +36,8 @@ func reset() -> void:
 	_check_timer = 0.0
 	_last_brush_pos = Vector2(-1, -1)
 	_last_face_idx = -1
+	_stroke_distance_accumulator = 0.0
+	unwrap_enabled = false
 	
 	# Clear any black overlay from force_unwrap, line segments, and stamps
 	for child in mask_viewport.get_children():
@@ -54,6 +60,9 @@ func reset() -> void:
 
 func _process(delta: float) -> void:
 	if _is_fully_unwrapped:
+		return
+	
+	if not unwrap_enabled:
 		return
 		
 	_handle_unwrapping()
@@ -195,6 +204,17 @@ func _handle_unwrapping() -> void:
 		# For same face, draw line; for different faces, still stamp but no line
 		if _last_face_idx == face_idx and dist > 2 and dist < 600:
 			_draw_line_segment(_last_brush_pos, new_pos)
+	
+	# Track movement distance for sound
+	if _last_brush_pos.x >= 0:
+		var move_dist = _last_brush_pos.distance_to(new_pos)
+		if move_dist < 500:  # Ignore large jumps (face changes)
+			_stroke_distance_accumulator += move_dist
+	
+	# Emit sound signal when we've moved enough
+	if _stroke_distance_accumulator >= STROKE_SOUND_THRESHOLD:
+		unwrap_stroke.emit()
+		_stroke_distance_accumulator = 0.0
 	
 	# Always stamp the brush at the current position
 	_stamp_brush(new_pos)

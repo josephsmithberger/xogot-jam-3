@@ -51,6 +51,15 @@ var _current_shake_intensity: float = 0.0
 var _player_keys: Array = []
 var _current_player_index: int = 0
 
+# Audio pool for overlapping unwrap sounds
+var _unwrap_audio_pool: Array[AudioStreamPlayer] = []
+const UNWRAP_AUDIO_POOL_SIZE := 5
+var _unwrap_sound_cooldown := 0.0
+const UNWRAP_SOUND_MIN_INTERVAL := 0.05
+var _time_since_last_stroke := 999.0
+const FADE_OUT_DELAY := 0.1  # Start fading after this many seconds of no strokes
+const FADE_OUT_SPEED := 25.0  # dB per second to fade
+
 
 func _ready() -> void:
 	_skeleton = _find_first_skeleton(player)
@@ -70,8 +79,10 @@ func _ready() -> void:
 	_setup_hand_ik()
 	_setup_foot_ik()
 	_setup_face_attachment()
+	_setup_unwrap_audio_pool()
 	
 	gift_box.unwrapped_percent_changed.connect(_on_unwrapped_percent_changed)
+	gift_box.unwrap_stroke.connect(_on_unwrap_stroke)
 	timer_ui.game_finished.connect(_on_game_finished)
 	
 	_player_keys = Global.player_data.keys()
@@ -131,11 +142,21 @@ func _start_turn() -> void:
 	
 	set_process(true)
 	timer_ui.start_game()
+	gift_box.unwrap_enabled = true
 
 
 
 func _process(delta: float) -> void:
 	_update_head_look_at(delta)
+	
+	# Update audio cooldown
+	if _unwrap_sound_cooldown > 0:
+		_unwrap_sound_cooldown -= delta
+	
+	# Track time since last unwrap stroke and fade out audio
+	_time_since_last_stroke += delta
+	if _time_since_last_stroke > FADE_OUT_DELAY:
+		_fade_out_unwrap_audio(delta)
 	
 	var input_vec := Vector2.ZERO
 	if timer_ui.is_game_active:
@@ -452,3 +473,50 @@ func set_face_texture(image: Image) -> void:
 		# img_copy.flip_y() # Removed flip_y as per previous fix
 		var tex = ImageTexture.create_from_image(img_copy)
 		face_decal.texture = tex
+
+
+func _setup_unwrap_audio_pool() -> void:
+	# Create a pool of AudioStreamPlayers for overlapping sounds
+	var unwrap_stream = $unwrap_audio.stream
+	for i in range(UNWRAP_AUDIO_POOL_SIZE):
+		var audio_player = AudioStreamPlayer.new()
+		audio_player.stream = unwrap_stream
+		audio_player.volume_db = -6.0  # Lower volume since multiple will play
+		add_child(audio_player)
+		_unwrap_audio_pool.append(audio_player)
+
+
+func _on_unwrap_stroke() -> void:
+	# Reset the time since last stroke
+	_time_since_last_stroke = 0.0
+	
+	# Find an available audio player from the pool, or reuse one that's been playing longest
+	var best_player: AudioStreamPlayer = null
+	var longest_play_position: float = -1.0
+	
+	for audio_player in _unwrap_audio_pool:
+		if not audio_player.playing:
+			best_player = audio_player
+			break
+		elif audio_player.get_playback_position() > longest_play_position:
+			longest_play_position = audio_player.get_playback_position()
+			best_player = audio_player
+	
+	if best_player:
+		# Add randomness to pitch and volume for variety
+		best_player.pitch_scale = randf_range(0.85, 1.2)
+		best_player.volume_db = randf_range(-10.0, -4.0)
+		
+		# Start at a random position in the sound for variety
+		var stream_length = best_player.stream.get_length()
+		best_player.play(randf_range(0.0, stream_length * 0.25))
+
+
+func _fade_out_unwrap_audio(delta: float) -> void:
+	# Quickly fade out all playing unwrap sounds
+	for audio_player in _unwrap_audio_pool:
+		if audio_player.playing:
+			audio_player.volume_db -= FADE_OUT_SPEED * delta
+			# Stop if faded enough
+			if audio_player.volume_db < -40.0:
+				audio_player.stop()
