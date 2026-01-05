@@ -137,7 +137,6 @@ size_flags_vertical = 4
 text = "Add to Party"
 
 [node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
-visible = false
 custom_minimum_size = Vector2(254.5, 0)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -147,6 +146,17 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme = ExtResource("5_dc4i4")
 text = "Tutorial"
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+custom_minimum_size = Vector2(254.5, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="LinkButton" type="LinkButton" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "My Website"
+uri = "https://josephsmithberger.com"
 
 [node name="TutorialWindow" type="PanelContainer" parent="."]
 visible = false

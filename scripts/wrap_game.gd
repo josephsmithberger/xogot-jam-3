@@ -1,6 +1,7 @@
 extends Node3D
 
 @export var rotation_speed_rad := 1.6
+@export var touch_sensitivity := 0.2
 @export var grip_follow_speed := 10.0
 @export var grip_separation_weight := 2.0
 @export var grip_hand_distance_weight := 1.0
@@ -48,6 +49,8 @@ var _initial_box_position: Vector3
 var _initial_box_rotation: Vector3
 var _current_shake_intensity: float = 0.0
 
+var _touch_input_acc := Vector2.ZERO
+
 var _player_keys: Array = []
 var _current_player_index: int = 0
 
@@ -91,6 +94,16 @@ func _ready() -> void:
 		Global.player_data["default"] = {"name": "Player 1"}
 		
 	_start_turn()
+
+
+func _input(event: InputEvent) -> void:
+	if not is_processing():
+		return
+		
+	if event is InputEventScreenDrag:
+		_touch_input_acc += event.relative
+	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_touch_input_acc += event.relative
 
 
 func _start_turn() -> void:
@@ -167,7 +180,20 @@ func _process(delta: float) -> void:
 		gift_box.rotate(Vector3.UP, input_vec.x * rotation_speed_rad * delta)
 		gift_box.rotate(Vector3.RIGHT, input_vec.y * rotation_speed_rad * delta)
 
-	_apply_juice(input_vec, delta)
+	if not _touch_input_acc.is_zero_approx():
+		# Scale based on sensitivity (approx radians per 100px)
+		var rot_scale = touch_sensitivity * 0.05
+		gift_box.rotate(Vector3.UP, _touch_input_acc.x * rot_scale)
+		gift_box.rotate(Vector3.RIGHT, _touch_input_acc.y * rot_scale)
+
+	var combined_input = input_vec
+	if not _touch_input_acc.is_zero_approx():
+		# Estimate equivalent stick input for juice (20px approx full stick)
+		combined_input += (_touch_input_acc / 20.0).clamp(Vector2(-1,-1), Vector2(1,1))
+		combined_input = combined_input.clamp(Vector2(-1,-1), Vector2(1,1))
+
+	_apply_juice(combined_input, delta)
+	_touch_input_acc = Vector2.ZERO
 	_apply_shake(delta)
 	_update_grips(delta)
 	_update_ik_magnets()
