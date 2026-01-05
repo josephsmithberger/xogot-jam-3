@@ -9,6 +9,8 @@ signal unwrapped_percent_changed(percent: float)
 var _check_timer: float = 0.0
 const CHECK_INTERVAL: float = 0.2
 var _is_fully_unwrapped: bool = false
+var _last_brush_pos: Vector2 = Vector2(-1, -1)
+var _last_face_idx: int = -1  # Track which face we were on
 
 func _ready() -> void:
 	_setup_gift_mesh()
@@ -28,10 +30,16 @@ func _ready() -> void:
 func reset() -> void:
 	_is_fully_unwrapped = false
 	_check_timer = 0.0
+	_last_brush_pos = Vector2(-1, -1)
+	_last_face_idx = -1
 	
-	# Clear any black overlay from force_unwrap
+	# Clear any black overlay from force_unwrap, line segments, and stamps
 	for child in mask_viewport.get_children():
 		if child is ColorRect and child != background:
+			child.queue_free()
+		elif child is Line2D:
+			child.queue_free()
+		elif child is Sprite2D and child != mask_brush:
 			child.queue_free()
 	
 	if is_instance_valid(background):
@@ -101,18 +109,21 @@ func _setup_gift_mesh() -> void:
 	# Row 1: Front, Right, Back
 	# Row 2: Left, Top, Bottom
 	
+	var w = 1.0 / 3.0
+	var h = 0.5
+	
 	# Front (+Z)
-	_add_quad(st, Vector3(-0.5, 0.5, 0.5), Vector3(0.5, 0.5, 0.5), Vector3(0.5, -0.5, 0.5), Vector3(-0.5, -0.5, 0.5), Vector3(0, 0, 1), Rect2(0, 0, 0.333, 0.5))
+	_add_quad(st, Vector3(-0.5, 0.5, 0.5), Vector3(0.5, 0.5, 0.5), Vector3(0.5, -0.5, 0.5), Vector3(-0.5, -0.5, 0.5), Vector3(0, 0, 1), Rect2(0, 0, w, h))
 	# Right (+X)
-	_add_quad(st, Vector3(0.5, 0.5, 0.5), Vector3(0.5, 0.5, -0.5), Vector3(0.5, -0.5, -0.5), Vector3(0.5, -0.5, 0.5), Vector3(1, 0, 0), Rect2(0.333, 0, 0.333, 0.5))
+	_add_quad(st, Vector3(0.5, 0.5, 0.5), Vector3(0.5, 0.5, -0.5), Vector3(0.5, -0.5, -0.5), Vector3(0.5, -0.5, 0.5), Vector3(1, 0, 0), Rect2(w, 0, w, h))
 	# Back (-Z)
-	_add_quad(st, Vector3(0.5, 0.5, -0.5), Vector3(-0.5, 0.5, -0.5), Vector3(-0.5, -0.5, -0.5), Vector3(0.5, -0.5, -0.5), Vector3(0, 0, -1), Rect2(0.666, 0, 0.333, 0.5))
+	_add_quad(st, Vector3(0.5, 0.5, -0.5), Vector3(-0.5, 0.5, -0.5), Vector3(-0.5, -0.5, -0.5), Vector3(0.5, -0.5, -0.5), Vector3(0, 0, -1), Rect2(w*2, 0, w, h))
 	# Left (-X)
-	_add_quad(st, Vector3(-0.5, 0.5, -0.5), Vector3(-0.5, 0.5, 0.5), Vector3(-0.5, -0.5, 0.5), Vector3(-0.5, -0.5, -0.5), Vector3(-1, 0, 0), Rect2(0, 0.5, 0.333, 0.5))
+	_add_quad(st, Vector3(-0.5, 0.5, -0.5), Vector3(-0.5, 0.5, 0.5), Vector3(-0.5, -0.5, 0.5), Vector3(-0.5, -0.5, -0.5), Vector3(-1, 0, 0), Rect2(0, h, w, h))
 	# Top (+Y)
-	_add_quad(st, Vector3(-0.5, 0.5, -0.5), Vector3(0.5, 0.5, -0.5), Vector3(0.5, 0.5, 0.5), Vector3(-0.5, 0.5, 0.5), Vector3(0, 1, 0), Rect2(0.333, 0.5, 0.333, 0.5))
+	_add_quad(st, Vector3(-0.5, 0.5, -0.5), Vector3(0.5, 0.5, -0.5), Vector3(0.5, 0.5, 0.5), Vector3(-0.5, 0.5, 0.5), Vector3(0, 1, 0), Rect2(w, h, w, h))
 	# Bottom (-Y)
-	_add_quad(st, Vector3(-0.5, -0.5, 0.5), Vector3(0.5, -0.5, 0.5), Vector3(0.5, -0.5, -0.5), Vector3(-0.5, -0.5, -0.5), Vector3(0, -1, 0), Rect2(0.666, 0.5, 0.333, 0.5))
+	_add_quad(st, Vector3(-0.5, -0.5, 0.5), Vector3(0.5, -0.5, 0.5), Vector3(0.5, -0.5, -0.5), Vector3(-0.5, -0.5, -0.5), Vector3(0, -1, 0), Rect2(w*2, h, w, h))
 
 	st.generate_normals()
 	st.generate_tangents()
@@ -157,22 +168,70 @@ func _handle_unwrapping() -> void:
 	
 	var space_state = get_world_3d().direct_space_state
 	var from = camera.global_position
-	var to = from - camera.global_transform.basis.z * 100.0
+	# Aim the ray toward the box center, not just straight forward
+	var ray_dir = (global_position - from).normalized()
+	var to = from + ray_dir * 100.0
 	var query = PhysicsRayQueryParameters3D.create(from, to)
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
 	
 	var result = space_state.intersect_ray(query)
-	if result:
-		if result.collider.get_parent() == self:
-			var local_point = to_local(result.position)
-			var local_normal = (global_transform.basis.inverse() * result.normal).normalized()
-			var uv2 = _get_uv2_from_local(local_point, local_normal)
-			mask_brush.position = uv2 * Vector2(1024, 1024)
+	if not result:
+		return
+		
+	if result.collider.get_parent() != self:
+		return
+		
+	var local_point = to_local(result.position)
+	var local_normal = (global_transform.basis.inverse() * result.normal).normalized()
+	var uv2_result = _get_uv2_from_local_with_face(local_point, local_normal)
+	var uv2: Vector2 = uv2_result[0]
+	var face_idx: int = uv2_result[1]
+	var new_pos = uv2 * Vector2(1024, 1024)
+	
+	# Draw connecting lines even across face changes for smoother coverage
+	if _last_brush_pos.x >= 0:
+		var dist = _last_brush_pos.distance_to(new_pos)
+		# For same face, draw line; for different faces, still stamp but no line
+		if _last_face_idx == face_idx and dist > 2 and dist < 600:
+			_draw_line_segment(_last_brush_pos, new_pos)
+	
+	# Always stamp the brush at the current position
+	_stamp_brush(new_pos)
+	
+	mask_brush.position = new_pos
+	_last_brush_pos = new_pos
+	_last_face_idx = face_idx
 
-func _get_uv2_from_local(pos: Vector3, normal: Vector3) -> Vector2:
+func _stamp_brush(pos: Vector2) -> void:
+	# Create a solid black circle at the position for reliable coverage
+	var stamp = ColorRect.new()
+	var size = mask_brush.scale.x * 64
+	stamp.size = Vector2(size, size)
+	stamp.position = pos - Vector2(size/2, size/2)
+	stamp.color = Color.BLACK
+	mask_viewport.add_child(stamp)
+
+func _draw_line_segment(from_pos: Vector2, to_pos: Vector2) -> void:
+	var line = Line2D.new()
+	line.width = mask_brush.scale.x * 64  # Match brush size
+	line.default_color = Color.BLACK
+	line.add_point(from_pos)
+	line.add_point(to_pos)
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	mask_viewport.add_child(line)
+
+func _get_uv2_from_local_with_face(pos: Vector3, normal: Vector3) -> Array:
 	var uv_local = Vector2.ZERO
+	# Use precise float constants to match Setup
+	var w = 1.0 / 3.0
+	var h = 0.5
 	var uv2_rect = Rect2()
+	var face_idx = 0
+	
+	# Clamp local position to valid range
+	pos = pos.clamp(Vector3(-0.5, -0.5, -0.5), Vector3(0.5, 0.5, 0.5))
 	
 	# Determine face based on normal
 	var abs_norm = normal.abs()
@@ -181,24 +240,38 @@ func _get_uv2_from_local(pos: Vector3, normal: Vector3) -> Vector2:
 	
 	if max_axis == 2: # Z
 		if sign_axis > 0: # Front (+Z)
-			uv_local = Vector2(pos.x + 0.5, -pos.y + 0.5)
-			uv2_rect = Rect2(0, 0, 0.333, 0.5)
+			uv_local = Vector2(pos.x + 0.5, 0.5 - pos.y)
+			uv2_rect = Rect2(0, 0, w, h)
+			face_idx = 0
 		else: # Back (-Z)
 			uv_local = Vector2(0.5 - pos.x, 0.5 - pos.y)
-			uv2_rect = Rect2(0.666, 0, 0.333, 0.5)
+			uv2_rect = Rect2(w*2, 0, w, h)
+			face_idx = 2
 	elif max_axis == 0: # X
 		if sign_axis > 0: # Right (+X)
 			uv_local = Vector2(0.5 - pos.z, 0.5 - pos.y)
-			uv2_rect = Rect2(0.333, 0, 0.333, 0.5)
+			uv2_rect = Rect2(w, 0, w, h)
+			face_idx = 1
 		else: # Left (-X)
 			uv_local = Vector2(pos.z + 0.5, 0.5 - pos.y)
-			uv2_rect = Rect2(0, 0.5, 0.333, 0.5)
+			uv2_rect = Rect2(0, h, w, h)
+			face_idx = 3
 	elif max_axis == 1: # Y
 		if sign_axis > 0: # Top (+Y)
 			uv_local = Vector2(pos.x + 0.5, pos.z + 0.5)
-			uv2_rect = Rect2(0.333, 0.5, 0.333, 0.5)
+			uv2_rect = Rect2(w, h, w, h)
+			face_idx = 4
 		else: # Bottom (-Y)
 			uv_local = Vector2(pos.x + 0.5, 0.5 - pos.z)
-			uv2_rect = Rect2(0.666, 0.5, 0.333, 0.5)
-			
-	return uv2_rect.position + (uv_local * uv2_rect.size)
+			uv2_rect = Rect2(w*2, h, w, h)
+			face_idx = 5
+	
+	# Clamp uv_local to [0, 1] range
+	uv_local = uv_local.clamp(Vector2.ZERO, Vector2.ONE)
+	
+	var uv2 = uv2_rect.position + (uv_local * uv2_rect.size)
+	return [uv2, face_idx]
+
+# Keep legacy function for compatibility
+func _get_uv2_from_local(pos: Vector3, normal: Vector3) -> Vector2:
+	return _get_uv2_from_local_with_face(pos, normal)[0]
