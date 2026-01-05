@@ -12,6 +12,13 @@ extends Node3D
 @export var body_sway_speed := 5.0
 @export var box_move_amount := 0.2
 
+@export_group("Tension")
+@export var start_fov := 75.0
+@export var end_fov := 50.0
+@export var start_sway := 15.0
+@export var end_sway := 30.0
+@export var max_shake := 1.0
+
 const LEFT_HAND_BONE := "Stickman_Joint_14"
 const RIGHT_HAND_BONE := "Stickman_Joint_10"
 const HEAD_BONE := "Stickman_Joint_4"
@@ -23,7 +30,10 @@ const RIGHT_FOOT_BONE := "Stickman_Joint_22"
 @onready var right_target: Node3D = $gift_box/RightTarget
 @onready var grip_points_root: Node3D = $gift_box/GripPoints
 @onready var player: Node = $player
+@onready var timer_ui: Control = $CanvasLayer/Control
+@onready var camera: Camera3D = $Camera3D
 
+var face_decal: Decal
 var _skeleton: Skeleton3D
 var _left_ik: SkeletonIK3D
 var _right_ik: SkeletonIK3D
@@ -35,6 +45,7 @@ var _right_hand_idx := -1
 var _head_idx := -1
 var _initial_player_rotation: Vector3
 var _initial_box_position: Vector3
+var _current_shake_intensity: float = 0.0
 
 
 func _ready() -> void:
@@ -53,6 +64,12 @@ func _ready() -> void:
 
 	_setup_hand_ik()
 	_setup_foot_ik()
+	_setup_face_attachment()
+	
+	gift_box.unwrapped_percent_changed.connect(_on_unwrapped_percent_changed)
+	timer_ui.game_finished.connect(_on_game_finished)
+	timer_ui.start_game()
+
 
 
 func _process(delta: float) -> void:
@@ -64,6 +81,7 @@ func _process(delta: float) -> void:
 		gift_box.rotate(Vector3.RIGHT, input_vec.y * rotation_speed_rad * delta)
 
 	_apply_juice(input_vec, delta)
+	_apply_shake(delta)
 	_update_grips(delta)
 	_update_ik_magnets()
 
@@ -77,6 +95,19 @@ func _apply_juice(input: Vector2, delta: float) -> void:
 
 	var target_pos := _initial_box_position + Vector3(input.x, -input.y, 0.0) * box_move_amount
 	gift_box.position = gift_box.position.lerp(target_pos, delta * body_sway_speed)
+
+
+func _apply_shake(delta: float) -> void:
+	if _current_shake_intensity > 0:
+		var offset = Vector2(
+			randf_range(-1, 1),
+			randf_range(-1, 1)
+		) * _current_shake_intensity * 0.05
+		camera.h_offset = offset.x
+		camera.v_offset = offset.y
+	else:
+		camera.h_offset = 0
+		camera.v_offset = 0
 
 
 func _setup_foot_ik() -> void:
@@ -281,3 +312,68 @@ func _update_ik_magnets() -> void:
 
 	_left_ik.magnet = left_pos
 	_right_ik.magnet = right_pos
+
+
+func _setup_face_attachment() -> void:
+	if not _skeleton: return
+	
+	var bone_name := "Stickman_Joint_5"
+	var bone_idx := _skeleton.find_bone(bone_name)
+	
+	if bone_idx != -1:
+		var attachment := BoneAttachment3D.new()
+		attachment.bone_name = bone_name
+		_skeleton.add_child(attachment)
+		
+		face_decal = Decal.new()
+		face_decal.size = Vector3(2.8, 14.58, 2.17)
+		face_decal.position = Vector3(0, 0.64, 0)
+		face_decal.rotation_degrees = Vector3(90, 0, 0)
+		face_decal.cull_mask = 1048575
+		
+		attachment.add_child(face_decal)
+		
+		# Debug: Print to confirm creation
+		print("Face decal created. Parent: ", attachment.name, " Bone: ", bone_name)
+		
+		# Debug: Add a visible sphere to check position
+		var sphere = MeshInstance3D.new()
+		sphere.mesh = SphereMesh.new()
+		sphere.mesh.radius = 0.2
+		sphere.mesh.height = 0.4
+		face_decal.add_child(sphere)
+		
+		# Default texture
+		var default_tex = load("res://assets/test.png")
+		if default_tex:
+			face_decal.texture_albedo = default_tex
+			print("Default texture loaded")
+		else:
+			print("Failed to load default texture")
+
+
+func _on_unwrapped_percent_changed(percent: float) -> void:
+	timer_ui.update_progress(percent)
+	
+	# Juice: Increase FOV zoom (lower FOV), increase sway
+	var target_fov = lerp(start_fov, end_fov, percent)
+	camera.fov = lerp(camera.fov, target_fov, 0.1)
+	
+	# Increase sway amount based on progress
+	body_sway_amount = lerp(start_sway, end_sway, percent)
+	
+	# Increase shake
+	_current_shake_intensity = percent * max_shake
+
+
+func _on_game_finished() -> void:
+	set_process(false)
+	print("Game Finished!")
+
+
+func set_face_texture(image: Image) -> void:
+	if face_decal and image:
+		var img_copy = image.duplicate()
+		img_copy.flip_y()
+		var tex = ImageTexture.create_from_image(img_copy)
+		face_decal.texture_albedo = tex

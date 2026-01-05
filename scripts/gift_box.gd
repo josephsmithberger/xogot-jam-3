@@ -1,8 +1,14 @@
 extends MeshInstance3D
 
+signal unwrapped_percent_changed(percent: float)
+
 @onready var mask_viewport: SubViewport = $MaskViewport
 @onready var mask_brush: Sprite2D = $MaskViewport/Brush
 @onready var background: ColorRect = $MaskViewport/Background
+
+var _check_timer: float = 0.0
+const CHECK_INTERVAL: float = 0.2
+var _is_fully_unwrapped: bool = false
 
 func _ready() -> void:
 	_setup_gift_mesh()
@@ -20,7 +26,50 @@ func _ready() -> void:
 		background.queue_free()
 
 func _process(delta: float) -> void:
+	if _is_fully_unwrapped:
+		return
+		
 	_handle_unwrapping()
+	
+	_check_timer += delta
+	if _check_timer >= CHECK_INTERVAL:
+		_check_timer = 0.0
+		_calculate_unwrapped_percent()
+
+func _calculate_unwrapped_percent() -> void:
+	var img = mask_viewport.get_texture().get_image()
+	# Downscale to make it faster
+	img.resize(64, 64, Image.INTERPOLATE_NEAREST)
+	
+	var total_pixels = 64 * 64
+	var unwrapped_pixels = 0
+	
+	for y in range(64):
+		for x in range(64):
+			var color = img.get_pixel(x, y)
+			# Mask is white (1) for wrapped, black (0) for unwrapped.
+			if color.r < 0.5:
+				unwrapped_pixels += 1
+				
+	var percent = float(unwrapped_pixels) / float(total_pixels)
+	
+	if percent >= 0.99:
+		force_unwrap()
+		percent = 1.0
+		
+	unwrapped_percent_changed.emit(percent)
+
+func force_unwrap() -> void:
+	if _is_fully_unwrapped:
+		return
+		
+	_is_fully_unwrapped = true
+	
+	var rect = ColorRect.new()
+	rect.color = Color.BLACK
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	mask_viewport.add_child(rect)
+
 
 func _setup_gift_mesh() -> void:
 	# Preserve the material from the original mesh
