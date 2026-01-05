@@ -1,0 +1,229 @@
+[gd_scene load_steps=10 format=3 uid="uid://cv0r45r07afrr"]
+
+[ext_resource type="Script" uid="uid://c7gv3d5ieyi46" path="res://scripts/winners.gd" id="1_winners"]
+[ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="2_5mqmc"]
+[ext_resource type="PackedScene" uid="uid://bc7r1x85rve30" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/Lowpoly Stickman Rigged and Animated for Games.fbx" id="2_iw2j0"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_0v3wv"]
+sky_top_color = Color(0.6771479, 0.7946517, 0.99919754, 1)
+sky_horizon_color = Color(1.022724, 0.66994023, 0.47758365, 1)
+ground_bottom_color = Color(1, 1, 1, 1)
+ground_horizon_color = Color(1.836022, 1.8512928, 1.871968, 1)
+
+[sub_resource type="Sky" id="Sky_pj4qa"]
+sky_material = SubResource("ProceduralSkyMaterial_0v3wv")
+
+[sub_resource type="Environment" id="Environment_4jeex"]
+background_mode = 2
+sky = SubResource("Sky_pj4qa")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Animation" id="Animation_eeaf4"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 14.987989, 10.404522)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CanvasLayer/Control/time_first:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CanvasLayer/Control/time_second:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("CanvasLayer/Control/time_third:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_iw2j0"]
+resource_name = "in"
+length = 4.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 4),
+"transitions": PackedFloat32Array(1.6245049, 1),
+"update": 0,
+"values": [Vector3(0, 14.987989, 10.404522), Vector3(0, 3.777, 10.405)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CanvasLayer/Control/time_first:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("CanvasLayer/Control/time_second:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("CanvasLayer/Control/time_third:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1gsha"]
+_data = {
+&"RESET": SubResource("Animation_eeaf4"),
+&"in": SubResource("Animation_iw2j0")
+}
+
+[node name="character_preview" type="Node3D"]
+script = ExtResource("1_winners")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_4jeex")
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1283913, 10.404522)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3395996, -3.1283913, -9.051891)
+size = Vector3(16.04248, 1, 4.839905)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.31655884, -2.0646477, -9.051891)
+size = Vector3(4.777405, 1.2338867, 4.839905)
+
+[node name="first_place" parent="." instance=ExtResource("2_iw2j0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0058681965, 1.6139746, 0.45366025)
+
+[node name="second_place" parent="." instance=ExtResource("2_iw2j0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2887783, 0.44277525, 0.45366025)
+
+[node name="third_place" parent="." instance=ExtResource("2_iw2j0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.988865, 0.44277525, 0.45366025)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14.987989, 10.404522)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_1gsha")
+}
+autoplay = "in"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_5mqmc")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 48.0
+offset_bottom = 108.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Control/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="CanvasLayer/Control/HBoxContainer/PanelContainer"]
+layout_mode = 2
+text = "And the winners are.."
+horizontal_alignment = 1
+
+[node name="time_first" type="Label" parent="CanvasLayer/Control"]
+visible = false
+layout_mode = 0
+offset_left = 393.0
+offset_top = 396.0
+offset_right = 534.0
+offset_bottom = 425.00006
+theme_override_colors/font_color = Color(0.84483457, 0.6868026, 0, 1)
+theme_override_font_sizes/font_size = 25
+text = "0s"
+
+[node name="time_second" type="Label" parent="CanvasLayer/Control"]
+layout_mode = 0
+offset_left = 145.41
+offset_top = 449.3
+offset_right = 187.41005
+offset_bottom = 478.30002
+theme_override_colors/font_color = Color(0.2940279, 0.29402775, 0.29402772, 1)
+theme_override_font_sizes/font_size = 25
+text = "0s"
+
+[node name="time_third" type="Label" parent="CanvasLayer/Control"]
+visible = false
+layout_mode = 0
+offset_left = 676.68
+offset_top = 449.3
+offset_right = 718.68024
+offset_bottom = 478.3
+theme_override_colors/font_color = Color(0.3737542, 0.17996246, 0, 1)
+theme_override_font_sizes/font_size = 25
+text = "0s"

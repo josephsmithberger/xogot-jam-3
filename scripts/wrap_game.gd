@@ -84,7 +84,7 @@ func _ready() -> void:
 
 func _start_turn() -> void:
 	if _current_player_index >= _player_keys.size():
-		get_tree().change_scene_to_file("res://scenes/versus_screen.tscn")
+		get_tree().change_scene_to_file("res://scenes/winners.tscn")
 		return
 
 	var player_key = _player_keys[_current_player_index]
