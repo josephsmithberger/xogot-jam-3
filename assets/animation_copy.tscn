@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://bjpdk1aicy240"]
+
+[ext_resource type="PackedScene" uid="uid://cvfx2n6wl8hmn" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/animation_copy.glb" id="1_rvub2"]
+
+[node name="animation_copy" instance=ExtResource("1_rvub2")]
