@@ -3,10 +3,14 @@ extends Control
 @onready var party_container = $VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer
 @onready var start_game_button = $VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/start_game
 @onready var warning_label = $VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/Label
+@onready var tutorial_window = $TutorialWindow
+@onready var video_player = $TutorialWindow/VBoxContainer/VideoStreamPlayer
 
 var file_dialog: FileDialog
 
 func _ready() -> void:
+	if has_node("TutorialWindow/VBoxContainer/VideoStreamPlayer"):
+		video_player.stream = load("res://addons/intro.ogv")
 	_setup_debug_upload()
 	update_party_display()
 
@@ -51,6 +55,7 @@ func update_party_display():
 		start_game_button.disabled = true
 		warning_label.show()
 	else:
+		$VBoxContainer/title.hide()
 		start_game_button.disabled = false
 		warning_label.hide()
 		
@@ -80,3 +85,18 @@ func _on_add_to_party_pressed() -> void:
 
 func _on_start_game_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/versus_screen.tscn")
+
+
+func _on_tutorial_pressed() -> void:
+	tutorial_window.show()
+	tutorial_window.scale = Vector2.ZERO
+	var tween = create_tween()
+	tween.tween_property(tutorial_window, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	video_player.play()
+
+
+func _on_close_tutorial_pressed() -> void:
+	var tween = create_tween()
+	tween.tween_property(tutorial_window, "scale", Vector2.ZERO, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_callback(tutorial_window.hide)
+	tween.tween_callback(video_player.stop)

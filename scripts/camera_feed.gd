@@ -130,10 +130,23 @@ func _apply_photo_mask(image: Image, mask_tex: Texture2D) -> Image:
 	if image.get_format() != Image.FORMAT_RGBA8:
 		image.convert(Image.FORMAT_RGBA8)
 
+	var mw := mask_img.get_width()
+	var mh := mask_img.get_height()
+	var iw := image.get_width()
+	var ih := image.get_height()
+
+	if mw != iw or mh != ih:
+		var scale := maxf(float(mw) / float(iw), float(mh) / float(ih))
+		var new_w := int(round(float(iw) * scale))
+		var new_h := int(round(float(ih) * scale))
+		image.resize(new_w, new_h)
+
+		var x := (new_w - mw) / 2
+		var y := (new_h - mh) / 2
+		image = image.get_region(Rect2i(x, y, mw, mh))
+
 	var w := image.get_width()
 	var h := image.get_height()
-	if mask_img.get_size() != Vector2i(w, h):
-		mask_img.resize(w, h)
 
 	var use_alpha := mask_img.detect_alpha() != Image.ALPHA_NONE
 	if use_alpha:
@@ -202,6 +215,7 @@ func _capture_photo_image() -> Image:
 		var bytes: PackedByteArray = Marshalls.base64_to_raw(b64)
 		var img := Image.new()
 		img.load_png_from_buffer(bytes)
+		img.flip_y()
 		return img
 
 	return _capture_texture_rect_from_viewport()
