@@ -38,6 +38,7 @@ func play_start_animation() -> void:
 	
 	# Ensure other elements are hidden initially
 	timer_label.scale = Vector2.ZERO
+	timer_label.modulate.a = 1.0
 	progress_bar.modulate.a = 0.0
 	
 	var tween = create_tween()
