@@ -374,39 +374,36 @@ func _update_ik_magnets() -> void:
 func _setup_face_attachment() -> void:
 	if not _skeleton: return
 	
-	var bone_name := "Stickman_Joint_5"
-	var bone_idx := _skeleton.find_bone(bone_name)
+	# Use bone index 5 as requested
+	var bone_idx := 5
+	if bone_idx >= _skeleton.get_bone_count():
+		print("Bone 5 not found in skeleton")
+		return
+		
+	var bone_name := _skeleton.get_bone_name(bone_idx)
 	
-	if bone_idx != -1:
-		var attachment := BoneAttachment3D.new()
-		attachment.bone_name = bone_name
-		_skeleton.add_child(attachment)
-		
-		face_decal = DecalCompatibility.new()
-		face_decal.size = Vector3(2.46, 14.58, 2.17)
-		face_decal.position = Vector3(-0.06, 0.77, -1.38)
-		face_decal.rotation_degrees = Vector3(-84.28, 0, 0)
-		# face_decal.cull_mask = 1048575 # Not supported in DecalCompatibility directly or handled differently
-		
-		attachment.add_child(face_decal)
-		
-		# Debug: Print to confirm creation
-		print("Face decal created. Parent: ", attachment.name, " Bone: ", bone_name)
-		
-		# Debug: Add a visible sphere to check position
-		var sphere = MeshInstance3D.new()
-		sphere.mesh = SphereMesh.new()
-		sphere.mesh.radius = 0.2
-		sphere.mesh.height = 0.4
-		face_decal.add_child(sphere)
-		
-		# Default texture
-		var default_tex = load("res://assets/test.png")
-		if default_tex:
-			face_decal.texture = default_tex
-			print("Default texture loaded")
-		else:
-			print("Failed to load default texture")
+	var attachment := BoneAttachment3D.new()
+	attachment.bone_name = bone_name
+	_skeleton.add_child(attachment)
+	
+	face_decal = DecalCompatibility.new()
+	face_decal.size = Vector3(235, 190, 270)
+	face_decal.position = Vector3(0, 90, -20)
+	face_decal.rotation_degrees = Vector3(-90, 180, 0)
+	# face_decal.cull_mask = 1048575 # Not supported in DecalCompatibility directly or handled differently
+	
+	attachment.add_child(face_decal)
+	
+	# Debug: Print to confirm creation
+	print("Face decal created. Parent: ", attachment.name, " Bone: ", bone_name)
+	
+	# Default texture
+	var default_tex = load("res://assets/test.png")
+	if default_tex:
+		face_decal.texture = default_tex
+		print("Default texture loaded")
+	else:
+		print("Failed to load default texture")
 
 
 func _on_unwrapped_percent_changed(percent: float) -> void:

@@ -56,8 +56,8 @@ bool checkCameraClippingDecal(mat4 inv_view_matrix, mat4 inv_model_matrix) {
 	vec4 camera_local = inv_model_matrix * vec4(camera_world, 1.0);
 
 	// Detect clip: camera inside decal geometry
-	return (abs(camera_local.x) < cube_half_size.x) ||
-		(abs(camera_local.y) < cube_half_size.y) ||
+	return (abs(camera_local.x) < cube_half_size.x) &&
+		(abs(camera_local.y) < cube_half_size.y) &&
 		(abs(camera_local.z) < cube_half_size.z);
 }
 

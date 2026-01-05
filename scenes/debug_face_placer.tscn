@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://dutlh8h6tady0"]
+[gd_scene load_steps=6 format=3 uid="uid://dutlh8h6tady0"]
 
 [ext_resource type="Script" uid="uid://bj753m7qrvheb" path="res://scripts/debug_face_placer.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://dacxaqkrpx04e" path="res://assets/test.png" id="2_05vh0"]
-[ext_resource type="PackedScene" uid="uid://bc7r1x85rve30" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/Lowpoly Stickman Rigged and Animated for Games.fbx" id="2_model"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_debug"]
 sky_top_color = Color(0.65, 0.71, 0.8, 1)
@@ -18,6 +17,7 @@ tonemap_mode = 2
 
 [node name="DebugFacePlacer" type="Node3D"]
 script = ExtResource("1_script")
+model_type = 1
 debug_texture = ExtResource("2_05vh0")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -26,8 +26,6 @@ shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_debug")
-
-[node name="Lowpoly Stickman Rigged and Animated for Games" parent="." instance=ExtResource("2_model")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 6.5072966)
