@@ -67,7 +67,12 @@ func update_party_display():
 			var key = keys[i]
 			var img = Global.player_data[key]
 			if img:
-				member.texture = ImageTexture.create_from_image(img)
+				var scaled_img = img.duplicate()
+				var new_width = int(scaled_img.get_width() * 0.5)
+				var new_height = int(scaled_img.get_height() * 0.5)
+				scaled_img.resize(new_width, new_height)
+				member.texture = ImageTexture.create_from_image(scaled_img)
+				member.flip_v = true
 
 func _on_add_to_party_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_creator.tscn")
