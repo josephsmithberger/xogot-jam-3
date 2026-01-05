@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://wi83gdapbrsg"]
+[gd_scene load_steps=12 format=3 uid="uid://wi83gdapbrsg"]
 
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="1_s4lrb"]
 [ext_resource type="Script" uid="uid://b0ij05ake7ldk" path="res://scripts/title_screen.gd" id="2_dc4i4"]
 [ext_resource type="Shader" uid="uid://bgticu1l1rr34" path="res://shaders/snow.gdshader" id="2_mgrm8"]
 [ext_resource type="Texture2D" uid="uid://c1v7av1vcub3g" path="res://assets/snowflake-png.webp" id="3_dc4i4"]
+[ext_resource type="Theme" uid="uid://dokxm2t80pqbg" path="res://assets/ui/kenneyUI-red.tres" id="5_dc4i4"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_e54dn"]
 shader = ExtResource("2_mgrm8")
@@ -77,7 +78,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 15
 alignment = 1
 
 [node name="title" type="TextureRect" parent="VBoxContainer"]
@@ -131,6 +132,17 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Add to Party"
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+custom_minimum_size = Vector2(254.5, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="tutorial" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("5_dc4i4")
+text = "Tutorial"
 
 [connection signal="pressed" from="VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/start_game" to="." method="_on_start_game_pressed"]
 [connection signal="pressed" from="VBoxContainer/add_to_party" to="." method="_on_add_to_party_pressed"]

@@ -84,6 +84,8 @@ func _ready() -> void:
 
 func _start_turn() -> void:
 	if _current_player_index >= _player_keys.size():
+		await timer_ui.show_finished()
+		await get_tree().create_timer(1.0).timeout
 		get_tree().change_scene_to_file("res://scenes/winners.tscn")
 		return
 
@@ -118,7 +120,14 @@ func _start_turn() -> void:
 	await gift_box.reset()
 	
 	$AnimationPlayer.play("in")
-	await $AnimationPlayer.animation_finished
+	
+	# Start UI animation halfway through camera animation for smoother transition
+	await get_tree().create_timer(0.4).timeout
+	
+	await timer_ui.play_start_animation()
+	
+	if $AnimationPlayer.is_playing():
+		await $AnimationPlayer.animation_finished
 	
 	set_process(true)
 	timer_ui.start_game()
@@ -421,11 +430,14 @@ func _on_unwrapped_percent_changed(percent: float) -> void:
 
 
 func _on_game_finished() -> void:
+	$finish.play()
 	set_process(false)
 	print("Game Finished!")
 	
 	var player_key = _player_keys[_current_player_index]
 	Global.score_data[player_key] = timer_ui.time_elapsed
+	
+	timer_ui.animate_out()
 	
 	$AnimationPlayer.play("out")
 	await $AnimationPlayer.animation_finished

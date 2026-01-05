@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://jy70t1gs78le"]
+[gd_scene load_steps=23 format=3 uid="uid://jy70t1gs78le"]
 
 [ext_resource type="Shader" uid="uid://dfc1mrmc3ay6e" path="res://shaders/gift.gdshader" id="1_5du7x"]
 [ext_resource type="Texture2D" uid="uid://b341wtc2kd6f2" path="res://assets/box_texture.jpg" id="2_anslr"]
@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://cvfx2n6wl8hmn" path="res://assets/Lowpoly Stickman Rigged and Animated for Games/animation_copy.glb" id="4_anslr"]
 [ext_resource type="Script" uid="uid://bhq1g4hwq381n" path="res://scripts/wrap_game.gd" id="5_wrap_game"]
 [ext_resource type="Theme" uid="uid://bnhngmri4tfgr" path="res://assets/ui/kenneyUI-green.tres" id="6_6x1my"]
+[ext_resource type="AudioStream" uid="uid://ban8vg4bgt6rb" path="res://assets/sounds/whoosh-sfx.mp3" id="7_4k1dw"]
+[ext_resource type="AudioStream" uid="uid://bqyff6d6ll7jo" path="res://assets/sounds/referee-whistle.mp3" id="7_7g7mu"]
 [ext_resource type="Script" uid="uid://dayn8yw4t50jn" path="res://scripts/gift_box.gd" id="8_gift_box"]
 [ext_resource type="Script" uid="uid://c0cuq6pl5raut" path="res://scripts/timer.gd" id="8_q2njf"]
 
@@ -46,6 +48,33 @@ fill_to = Vector2(0.5, 0)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gift"]
 
+[sub_resource type="Animation" id="Animation_4k1dw"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 3.927885, 7.899938)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AudioStreamPlayer:playing")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
 [sub_resource type="Animation" id="Animation_q2njf"]
 resource_name = "in"
 tracks/0/type = "value"
@@ -60,20 +89,17 @@ tracks/0/keys = {
 "update": 0,
 "values": [Vector3(-13.49, 3.928, 7.9), Vector3(0, 3.927885, 7.899938)]
 }
-
-[sub_resource type="Animation" id="Animation_4k1dw"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Camera3D:position")
-tracks/0/interp = 2
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AudioStreamPlayer:playing")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.1),
 "transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 3.927885, 7.899938)]
+"update": 1,
+"values": [true]
 }
 
 [sub_resource type="Animation" id="Animation_7g7mu"]
@@ -89,6 +115,18 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(5.2780313, 1),
 "update": 0,
 "values": [Vector3(0, 3.927885, 7.899938), Vector3(15.05, 3.928, 7.9)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AudioStreamPlayer:playing")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_wcnmt"]
@@ -163,6 +201,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.3, 0)
 
 [node name="player" parent="." instance=ExtResource("4_anslr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="finish" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_7g7mu")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_4k1dw")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.927885, 7.899938)

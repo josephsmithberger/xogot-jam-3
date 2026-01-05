@@ -16,6 +16,69 @@ func _ready() -> void:
 	name_label.text = player_name
 	reset()
 
+func animate_out() -> void:
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(name_label, "modulate:a", 0.0, 0.2)
+	tween.tween_property(timer_label, "modulate:a", 0.0, 0.2)
+	tween.tween_property(progress_bar, "modulate:a", 0.0, 0.2)
+	await tween.finished
+
+func play_start_animation() -> void:
+	# Wait a frame to ensure the label has the correct size after text update
+	await get_tree().process_frame
+	
+	name_label.pivot_offset = name_label.size / 2
+	timer_label.pivot_offset = timer_label.size / 2
+	
+	# Initial "Sakurai" style setup: Huge, rotated, transparent
+	name_label.scale = Vector2(5.0, 5.0)
+	name_label.modulate.a = 0.0
+	name_label.rotation_degrees = -15.0
+	
+	# Ensure other elements are hidden initially
+	timer_label.scale = Vector2.ZERO
+	progress_bar.modulate.a = 0.0
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	
+	# Slam down Name with impact
+	tween.tween_property(name_label, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tween.tween_property(name_label, "modulate:a", 1.0, 0.1)
+	tween.tween_property(name_label, "rotation_degrees", 0.0, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	await tween.finished
+	
+	# A moment to read it
+	await get_tree().create_timer(0.3).timeout
+	
+	# Pop in Timer and Progress Bar
+	var ui_tween = create_tween()
+	ui_tween.set_parallel(true)
+	ui_tween.tween_property(timer_label, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	ui_tween.tween_property(progress_bar, "modulate:a", 1.0, 0.3)
+	await ui_tween.finished
+
+func show_finished() -> void:
+	name_label.text = "Finished!"
+	name_label.pivot_offset = name_label.size / 2
+	
+	# Reset for animation
+	name_label.scale = Vector2(5.0, 5.0)
+	name_label.rotation_degrees = -15.0
+	name_label.modulate.a = 0.0
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	
+	# Slam down "Finished!"
+	tween.tween_property(name_label, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	tween.tween_property(name_label, "modulate:a", 1.0, 0.1)
+	tween.tween_property(name_label, "rotation_degrees", 0.0, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	await tween.finished
+
 func start_game() -> void:
 	reset()
 	is_game_active = true
