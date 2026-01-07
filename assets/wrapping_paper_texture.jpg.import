@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bovi5a5yr63iw"
 path.s3tc="res://.godot/imported/wrapping_paper_texture.jpg-cdafc92b1495c90273e075d76a82bae1.s3tc.ctex"
+path.etc2="res://.godot/imported/wrapping_paper_texture.jpg-cdafc92b1495c90273e075d76a82bae1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/wrapping_paper_texture.jpg"
-dest_files=["res://.godot/imported/wrapping_paper_texture.jpg-cdafc92b1495c90273e075d76a82bae1.s3tc.ctex"]
+dest_files=["res://.godot/imported/wrapping_paper_texture.jpg-cdafc92b1495c90273e075d76a82bae1.s3tc.ctex", "res://.godot/imported/wrapping_paper_texture.jpg-cdafc92b1495c90273e075d76a82bae1.etc2.ctex"]
 
 [params]
 

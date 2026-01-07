@@ -80,11 +80,11 @@ func update_party_display():
 				member.flip_v = true
 
 func _on_add_to_party_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/character_creator.tscn")
+	SceneLoader.goto_scene("res://scenes/character_creator.tscn")
 
 
 func _on_start_game_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/versus_screen.tscn")
+	SceneLoader.goto_scene("res://scenes/versus_screen.tscn")
 
 
 func _on_tutorial_pressed() -> void:

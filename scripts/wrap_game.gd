@@ -110,7 +110,7 @@ func _start_turn() -> void:
 	if _current_player_index >= _player_keys.size():
 		await timer_ui.show_finished()
 		await get_tree().create_timer(1.0).timeout
-		get_tree().change_scene_to_file("res://scenes/winners.tscn")
+		SceneLoader.goto_scene("res://scenes/winners.tscn")
 		return
 
 	var player_key = _player_keys[_current_player_index]

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpn0lygkqb1hf"
 path.s3tc="res://.godot/imported/animation_copy_T_Stickman_Base_color.png-15e875d454c4f50f850f1bd2ba01e7ce.s3tc.ctex"
+path.etc2="res://.godot/imported/animation_copy_T_Stickman_Base_color.png-15e875d454c4f50f850f1bd2ba01e7ce.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/Lowpoly Stickman Rigged and Animated for Games/animation_copy_T_Stickman_Base_color.png"
-dest_files=["res://.godot/imported/animation_copy_T_Stickman_Base_color.png-15e875d454c4f50f850f1bd2ba01e7ce.s3tc.ctex"]
+dest_files=["res://.godot/imported/animation_copy_T_Stickman_Base_color.png-15e875d454c4f50f850f1bd2ba01e7ce.s3tc.ctex", "res://.godot/imported/animation_copy_T_Stickman_Base_color.png-15e875d454c4f50f850f1bd2ba01e7ce.etc2.ctex"]
 
 [params]
 
