@@ -11,7 +11,8 @@ var file_dialog: FileDialog
 func _ready() -> void:
 	if has_node("TutorialWindow/VBoxContainer/VideoStreamPlayer"):
 		video_player.stream = load("res://addons/intro.ogv")
-	_setup_debug_upload()
+	if OS.is_debug_build():
+		_setup_debug_upload()
 	update_party_display()
 
 func _setup_debug_upload():
